@@ -67,6 +67,7 @@
     }
 
     // 3. Device & Screen Environment
+    const isClientBot = !!navigator.webdriver || /HeadlessChrome|PhantomJS|bot|crawl|spider|slurp/i.test(navigator.userAgent);
     const deviceEnv = {
         screen: window.screen ? `${window.screen.width}x${window.screen.height}` : '1920x1080',
         viewport: `${window.innerWidth}x${window.innerHeight}`,
@@ -74,11 +75,14 @@
         language: navigator.language || 'en-US',
         isMobile: /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
         isTablet: /(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/i.test(navigator.userAgent),
-        connection: navigator.connection ? navigator.connection.effectiveType : 'unknown'
+        connection: navigator.connection ? navigator.connection.effectiveType : 'unknown',
+        isBot: isClientBot,
+        botName: isClientBot ? 'Client Automated Agent' : ''
     };
 
+    const resolvedOrigin = (window.location.origin === 'null' || !window.location.origin) ? 'http://localhost:3001' : window.location.origin;
     const config = {
-        backendUrl: window.RVCE_TELEMETRY_URL || window.location.origin,
+        backendUrl: window.RVCE_TELEMETRY_URL || resolvedOrigin,
         instituteId: 'rvce',
         apiKey: 'rvce_key_12345',
         batchInterval: 3000,
@@ -88,9 +92,13 @@
     let eventQueue = [];
     let flushTimer = null;
     let pageStartTime = Date.now();
+    let botOpenTime = 0;
+    let messageCountInSession = 0;
     let scrollDepthsLogged = new Set();
     let clickHistory = [];
     let previousUrl = window.location.href;
+    let activeInputHesitationTimer = null;
+    let lastDraftText = '';
 
     // --- Core Event Dispatcher ---
     function trackEvent(eventType, interactionId, queryText, details = {}) {
@@ -317,18 +325,86 @@
     window.addEventListener('beforeunload', onPageLeave);
     window.addEventListener('pagehide', onPageLeave);
 
-    // 7. Public Telemetry API for RVCE Chatbot Widget
+    // 7. Automatic Chatbot Typing Hesitation & Message Abandonment Watcher
+    document.addEventListener('input', function(e) {
+        const target = e.target;
+        const isChatInput = target.closest('#rvce-chat-modal, .chatbot-container, #rvce-widget-bubble') || 
+                            target.id === 'chatInput' || target.id === 'userInput' || target.classList.contains('chat-input');
+        if (!isChatInput) return;
+
+        const currentVal = target.value || '';
+        if (currentVal.length > 6) {
+            lastDraftText = currentVal;
+            if (activeInputHesitationTimer) clearTimeout(activeInputHesitationTimer);
+            activeInputHesitationTimer = setTimeout(() => {
+                // If user stopped typing for 5 seconds and then later erases, it's hesitation
+                target.dataset.hesitationArmed = 'true';
+            }, 4500);
+        } else if (currentVal.length === 0 && target.dataset.hesitationArmed === 'true') {
+            target.dataset.hesitationArmed = 'false';
+            trackEvent('typing_hesitation', 'chat_hesitation', 'Student hesitated & deleted draft message without sending', {
+                draftLength: lastDraftText.length,
+                draftSnippet: lastDraftText.substring(0, 40) + '...',
+                location: 'Chatbot'
+            });
+            flushQueue();
+            lastDraftText = '';
+        }
+    });
+
+    // 8. Public Telemetry API for RVCE Chatbot Widget & Admissions Simulation
     window.RVCETelemetry = {
         trackBotOpen: (pageUrl) => {
+            botOpenTime = Date.now();
+            const timeToOpenSeconds = Math.round((Date.now() - pageStartTime) / 1000);
             trackEvent('bot_open', 'open_chatbot', 'Visitor opened the RVCE Chatbot Widget', {
-                location: 'Chatbot'
+                location: 'Chatbot',
+                timeToOpenSeconds: timeToOpenSeconds,
+                entryPage: landingPage
+            });
+            flushQueue();
+        },
+        trackBotClose: () => {
+            const openDuration = botOpenTime > 0 ? Math.round((Date.now() - botOpenTime) / 1000) : 0;
+            const isBounce = openDuration <= 5 && messageCountInSession === 0;
+            trackEvent(isBounce ? 'bot_bounce' : 'bot_close', isBounce ? 'bot_bounce' : 'close_chatbot', 
+                isBounce ? 'Visitor opened and instantly closed chatbot without asking (Bounce)' : 'Visitor closed the RVCE Chatbot Widget', {
+                location: 'Chatbot',
+                openDurationSeconds: openDuration,
+                isBounce: isBounce,
+                messagesSent: messageCountInSession
             });
             flushQueue();
         },
         trackMessage: (query, intent, botReply, linkContained = '') => {
+            messageCountInSession++;
             trackEvent('message', intent || 'chat_message', query, {
                 botReply: botReply,
                 linkContained: linkContained,
+                location: 'Chatbot',
+                messageTurn: messageCountInSession
+            });
+            flushQueue();
+        },
+        trackBotFallback: (query, botReply = "I couldn't find an answer") => {
+            trackEvent('bot_fallback', 'fallback_unanswered', query || 'Unknown question', {
+                botReply: botReply,
+                isUnanswered: true,
+                location: 'Chatbot'
+            });
+            flushQueue();
+        },
+        trackHesitation: (draftSnippet = 'KCET Cutoff query') => {
+            trackEvent('typing_hesitation', 'chat_hesitation', 'Student hesitated & erased question draft', {
+                draftSnippet: draftSnippet,
+                location: 'Chatbot'
+            });
+            flushQueue();
+        },
+        trackChipClick: (chipText, chipId = '') => {
+            trackEvent('chip_click', `chip:${chipId || 'chip'}`, `Clicked quick chip: "${chipText}"`, {
+                buttonText: chipText,
+                chipId: chipId,
                 location: 'Chatbot'
             });
             flushQueue();
@@ -352,7 +428,7 @@
             flushQueue();
         },
         trackLead: (leadData) => {
-            trackEvent('form_submit', 'lead_captured', 'Candidate submitted contact details', {
+            trackEvent('form_submit', 'lead_captured', 'Candidate submitted inquiry details', {
                 leadData: leadData,
                 location: 'Chatbot'
             });
@@ -367,6 +443,18 @@
         },
         trackInteraction: (eventType, desc, meta = {}) => {
             trackEvent(eventType, eventType, desc || eventType, meta);
+            flushQueue();
+        },
+        trackSimulateBot: (botName = 'Googlebot', botCategory = 'Search Engine Indexer') => {
+            deviceEnv.isBot = true;
+            deviceEnv.botName = botName;
+            deviceEnv.botCategory = botCategory;
+            trackEvent('bot_crawl', 'crawler_scan', `${botName} initiated automated crawl`, {
+                isBot: true,
+                botName: botName,
+                botCategory: botCategory,
+                location: 'Crawler'
+            });
             flushQueue();
         },
         getSessionId: () => sessionId

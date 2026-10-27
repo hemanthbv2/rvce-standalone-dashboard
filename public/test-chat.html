@@ -202,6 +202,44 @@
                     <strong>🔄 Redirect ➔ /apply-now</strong>
                     <span>Simulates navigation to Application Form</span>
                 </button>
+            <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#06b6d4; text-transform:uppercase; letter-spacing:0.8px;">4. 🤖 Automated Web Crawlers & Bot Probers (Bot Filter Testing)</div>
+            <div class="actions-grid">
+                <button class="test-btn" onclick="simulateBot('Googlebot', 'Search Engine Indexer')">
+                    <strong>🔍 Simulate Googlebot</strong>
+                    <span>Logs automated search crawler indexing admission pages</span>
+                </button>
+                <button class="test-btn" onclick="simulateBot('SemrushBot', 'SEO Crawler')">
+                    <strong>📊 Simulate SemrushBot</strong>
+                    <span>Logs commercial SEO audit bot scanning RVCE portal</span>
+                </button>
+                <button class="test-btn" onclick="simulateBot('Python Scraper', 'Scraper / Script')">
+                    <strong>🐍 Simulate Python Scraper</strong>
+                    <span>Logs automated python-requests script scraping cutoff tables</span>
+                </button>
+                <button class="test-btn" onclick="simulateBot('ByteSpider', 'Search Engine Indexer')">
+                    <strong>🕷️ Simulate ByteSpider</strong>
+                    <span>Logs TikTok/ByteDance crawler probe</span>
+                </button>
+            </div>
+
+            <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#ec4899; text-transform:uppercase; letter-spacing:0.8px;">5. 👁️ Microsoft Clarity Chatbot Friction & Drop-Off Diagnostics</div>
+            <div class="actions-grid">
+                <button class="test-btn" onclick="simulateHesitation()">
+                    <strong>⏳ Simulate Typing Hesitation</strong>
+                    <span>Types question draft, hesitates 4s, clears without sending</span>
+                </button>
+                <button class="test-btn" onclick="simulateBotBounce()">
+                    <strong>🏃 Simulate Chatbot Bounce</strong>
+                    <span>Opens chatbot, sees greeting, instantly closes (<3s, no query)</span>
+                </button>
+                <button class="test-btn" onclick="simulateFallback()">
+                    <strong>❓ Simulate Bot Fallback</strong>
+                    <span>Asks complex unknown question triggering fallback confusion</span>
+                </button>
+                <button class="test-btn" onclick="simulateCopyCutoff()">
+                    <strong>📋 Simulate Copy Cutoff Text</strong>
+                    <span>Student copies 'KCET CSE Cutoff: 310' (Positive Intent signal)</span>
+                </button>
             </div>
 
             <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
@@ -312,11 +350,36 @@
             }, 450);
         }
 
-        function sendUserMsg() {
+        async function sendUserMsg() {
             const text = chatInput.value.trim();
             if (!text) return;
             chatInput.value = '';
             appendMsg('user', text);
+
+            try {
+                const targetUrl = (window.RVCE_TELEMETRY_URL || window.location.origin) + '/api/chat/reply';
+                const res = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: text, sessionId: window.RVCETelemetry ? window.RVCETelemetry.getSessionId() : 'sess_sim' })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    let extra = '';
+                    if (data.links && data.links.length) {
+                        extra = `<div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">` + 
+                            data.links.map(l => `<a href="${l.url}" target="_blank" style="color:#60a5fa; font-weight:700; font-size:12px; text-decoration:underline;">🔗 ${l.text}</a>`).join('') +
+                            `</div>`;
+                    }
+                    setTimeout(() => {
+                        appendMsg('bot', data.reply, extra);
+                        if (window.RVCETelemetry) {
+                            window.RVCETelemetry.trackMessage(text, data.intent, data.reply);
+                        }
+                    }, 400);
+                    return;
+                }
+            } catch (err) {}
 
             let intent = 'general';
             if (/placement|package|salary|recruit/i.test(text)) intent = 'placements';
@@ -390,6 +453,63 @@
             div.innerHTML = `📍 Navigated to <strong>${path}</strong> · Chat continues seamlessly`;
             chatMessages.appendChild(div);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function simulateBot(botName, botCategory) {
+            if (window.RVCETelemetry) {
+                window.RVCETelemetry.trackSimulateBot(botName, botCategory);
+            }
+            showToast(`🤖 Crawler Logged: ${botName} (${botCategory}) ➔ Tracked in Bot Matrix!`);
+        }
+
+        function simulateHesitation() {
+            if (chatModal.style.display !== 'flex') chatModal.style.display = 'flex';
+            chatInput.value = "What is the fee for management qu...";
+            showToast("⏳ Simulated typing draft in chatbot input...");
+            setTimeout(() => {
+                chatInput.value = "";
+                if (window.RVCETelemetry) {
+                    window.RVCETelemetry.trackHesitation("What is the fee for management qu...");
+                }
+                showToast("⚠️ Hesitation Logged: Student erased draft message without sending!");
+            }, 1800);
+        }
+
+        function simulateBotBounce() {
+            toggleChat();
+            showToast("👁️ Opened chatbot widget...");
+            setTimeout(() => {
+                toggleChat();
+                if (window.RVCETelemetry) {
+                    window.RVCETelemetry.trackBotClose();
+                }
+                showToast("🏃 Bot Bounce Logged: User closed widget within 2s without asking (Bounce)!");
+            }, 1500);
+        }
+
+        function simulateFallback() {
+            const trickyQuery = "Can I pay management fees using foreign cryptocurrency in installments?";
+            if (chatModal.style.display !== 'flex') chatModal.style.display = 'flex';
+            appendMsg('user', trickyQuery);
+            setTimeout(() => {
+                const fallbackReply = "I am sorry, I do not have verified information on cryptocurrency payments. Please contact the RVCE Office of Admissions directly.";
+                appendMsg('bot', fallbackReply);
+                if (window.RVCETelemetry) {
+                    window.RVCETelemetry.trackBotFallback(trickyQuery, fallbackReply);
+                }
+                showToast("📉 Fallback Logged: Chatbot confusion / unanswered question recorded!");
+            }, 500);
+        }
+
+        function simulateCopyCutoff() {
+            const copiedText = "RVCE KCET CSE Cutoff: Rank 310 (GM) · COMEDK: Rank 465";
+            if (window.RVCETelemetry) {
+                window.RVCETelemetry.trackInteraction('copy', `Copied cutoff info: "${copiedText}"`, {
+                    copiedText: copiedText,
+                    location: 'Chatbot'
+                });
+            }
+            showToast("📋 Copied Text Logged: Student copied cutoff rank (High-Intent Signal)!");
         }
 
         function showToast(msg) {

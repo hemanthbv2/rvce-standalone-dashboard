@@ -741,7 +741,7 @@
 
         async function fetchDailyReport() {
             try {
-                let token = localStorage.getItem('rvce_auth_token');
+                let token = localStorage.getItem('token') || localStorage.getItem('rvce_auth_token');
                 
                 // If not logged in, auto-login with default credentials for instant report generation
                 if (!token) {
@@ -753,6 +753,7 @@
                     const loginJson = await loginRes.json();
                     if (loginJson.token) {
                         token = loginJson.token;
+                        localStorage.setItem('token', token);
                         localStorage.setItem('rvce_auth_token', token);
                     }
                 }

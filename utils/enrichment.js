@@ -110,36 +110,76 @@ async function resolveGeoLocation(req, clientIp) {
     };
 }
 
+const BOT_REGEX = /(googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|semrushbot|ahrefsbot|bytespider|applebot|curl|wget|python|postman|insomnia|headlesschrome|phantomjs|lighthouse|mediapartners-google|facebookexternalhit|whatsapp|telegrambot|twitterbot|spider|crawl|bot)/i;
+
+function detectBot(userAgentString = '', clientPayload = {}) {
+    const ua = (userAgentString || '').trim();
+    if (clientPayload.isBot === true) {
+        return { isBot: true, botName: clientPayload.botName || 'Automated Bot', botCategory: 'Automated Bot' };
+    }
+    
+    if (BOT_REGEX.test(ua)) {
+        let name = 'Automated Bot';
+        let category = 'Crawler / Scraper';
+
+        if (/googlebot|mediapartners-google/i.test(ua)) { name = 'Googlebot'; category = 'Search Engine Indexer'; }
+        else if (/bingbot/i.test(ua)) { name = 'Bingbot'; category = 'Search Engine Indexer'; }
+        else if (/semrush/i.test(ua)) { name = 'SemrushBot'; category = 'SEO Crawler'; }
+        else if (/ahrefs/i.test(ua)) { name = 'AhrefsBot'; category = 'SEO Crawler'; }
+        else if (/bytespider/i.test(ua)) { name = 'ByteSpider'; category = 'Search Engine Indexer'; }
+        else if (/python/i.test(ua)) { name = 'Python Script'; category = 'Scraper / Script'; }
+        else if (/curl|wget/i.test(ua)) { name = 'cURL / CLI Request'; category = 'Scraper / Script'; }
+        else if (/headlesschrome|puppeteer/i.test(ua)) { name = 'Headless Chrome / Puppeteer'; category = 'Headless Automation'; }
+        else if (/postman|insomnia/i.test(ua)) { name = 'API Client'; category = 'API Client'; }
+        else if (/facebookexternalhit|whatsapp|telegrambot|twitterbot/i.test(ua)) { name = 'Social Media Preview Bot'; category = 'Social Crawler'; }
+        else if (/applebot/i.test(ua)) { name = 'Applebot'; category = 'Search Engine Indexer'; }
+        else if (/duckduckbot/i.test(ua)) { name = 'DuckDuckBot'; category = 'Search Engine Indexer'; }
+        else if (/yandex/i.test(ua)) { name = 'YandexBot'; category = 'Search Engine Indexer'; }
+
+        return { isBot: true, botName: name, botCategory: category };
+    }
+
+    return { isBot: false, botName: 'Real User', botCategory: 'Human' };
+}
+
 function parseDeviceEnvironment(userAgentString, clientPayload = {}) {
     const parser = new UAParser(userAgentString || '');
     const result = parser.getResult();
+    const botInfo = detectBot(userAgentString, clientPayload);
 
-    let deviceType = 'Desktop';
-    if (result.device.type === 'mobile' || clientPayload.isMobile) {
-        deviceType = 'Mobile';
-    } else if (result.device.type === 'tablet' || clientPayload.isTablet) {
-        deviceType = 'Tablet';
-    } else if (/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgentString)) {
-        deviceType = 'Mobile';
+    let deviceType = botInfo.isBot ? 'Bot / Crawler' : 'Desktop';
+    if (!botInfo.isBot) {
+        if (result.device.type === 'mobile' || clientPayload.isMobile) {
+            deviceType = 'Mobile';
+        } else if (result.device.type === 'tablet' || clientPayload.isTablet) {
+            deviceType = 'Tablet';
+        } else if (/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgentString)) {
+            deviceType = 'Mobile';
+        }
     }
 
     return {
         type: deviceType,
         vendor: result.device.vendor || clientPayload.vendor || '',
         model: result.device.model || clientPayload.model || '',
-        os: result.os.name || clientPayload.os || 'Unknown',
+        os: result.os.name || clientPayload.os || (botInfo.isBot ? 'Bot Server' : 'Unknown'),
         osVersion: result.os.version || '',
-        browser: result.browser.name || clientPayload.browser || 'Unknown Browser',
+        browser: result.browser.name || clientPayload.browser || (botInfo.isBot ? botInfo.botName : 'Unknown Browser'),
         browserVersion: result.browser.version ? result.browser.version.split('.')[0] : '',
         screen: clientPayload.screen || '1920x1080',
         viewport: clientPayload.viewport || '1920x1080',
         devicePixelRatio: clientPayload.devicePixelRatio || 1,
-        language: clientPayload.language || 'en-US'
+        language: clientPayload.language || 'en-US',
+        isBot: botInfo.isBot,
+        botName: botInfo.botName,
+        botCategory: botInfo.botCategory
     };
 }
 
 module.exports = {
     extractClientIp,
     resolveGeoLocation,
+    detectBot,
     parseDeviceEnvironment
 };
+

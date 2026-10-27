@@ -49,9 +49,13 @@ async function migrate() {
             created_at: s.createdAt || new Date()
         }));
 
-        const { error: sessErr } = await supabase.from('sessions').upsert(mappedSessions, { onConflict: 'session_id' });
-        if (sessErr) console.error('Error migrating sessions:', sessErr.message);
-        else console.log(`✅ Successfully migrated ${mappedSessions.length} sessions to Supabase!`);
+        // Batch upsert sessions in chunks of 100
+        for (let i = 0; i < mappedSessions.length; i += 100) {
+            const chunk = mappedSessions.slice(i, i + 100);
+            const { error: sessErr } = await supabase.from('sessions').upsert(chunk, { onConflict: 'session_id' });
+            if (sessErr) console.error(`Error migrating sessions chunk (${i}-${i+chunk.length}):`, sessErr.message);
+        }
+        console.log(`✅ Successfully migrated ${mappedSessions.length} sessions to Supabase!`);
     }
 
     // 2. Migrate Interactions

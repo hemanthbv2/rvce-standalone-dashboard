@@ -74,7 +74,14 @@ const sessionSchema = new mongoose.Schema({
         language: { type: String, default: 'en-US' }
     },
     
-    // Clarity Behavioral Signals
+    // Visitor & Bot Classification
+    isBot: { type: Boolean, default: false },
+    botName: { type: String, default: '' },
+    botCategory: { type: String, default: 'Human' },
+    visitorType: { type: String, enum: ['user', 'bot'], default: 'user' },
+    chatEngagement: { type: String, enum: ['conversed', 'opened_only', 'browsed_only'], default: 'browsed_only' },
+
+    // Microsoft Clarity Behavioral & Chatbot Friction Signals
     metrics: {
         eventCount: { type: Number, default: 0 },
         messageCount: { type: Number, default: 0 },
@@ -82,6 +89,11 @@ const sessionSchema = new mongoose.Schema({
         linksClicked: { type: Number, default: 0 },
         rageClicks: { type: Number, default: 0 },
         deadClicks: { type: Number, default: 0 },
+        hesitationCount: { type: Number, default: 0 }, // User typed & hesitated/cleared
+        botFallbacks: { type: Number, default: 0 },    // Bot could not answer
+        copiedCount: { type: Number, default: 0 },     // Text/info copied
+        timeToOpenSeconds: { type: Number, default: 0 },// Seconds from landing to opening bot
+        dropoffReason: { type: String, default: 'normal' }, // 'normal', 'bot_bounce', 'fallback_dropoff', 'rage_exit'
         maxScrollDepth: { type: Number, default: 0 },
         dwellSeconds: { type: Number, default: 0 },
         frustrationScore: { type: Number, default: 0 } // 0 to 100
