@@ -2277,11 +2277,10 @@
             const scriptEl = document.getElementById('copyScriptTag');
             if (wpEl) wpEl.textContent = host;
             if (scriptEl) {
-                scriptEl.textContent = `<script>\n  window.RVCE_TELEMETRY_URL = "${host}";\n</script>\n
-    <script src="${host}/clarity-telemetry.js"></script>`;
-    }
-    document.getElementById('integrationModal').style.display = 'flex';
-    }
+                scriptEl.textContent = `<script>\n  window.RVCE_TELEMETRY_URL = "${host}";\n<\/script>\n<script src="${host}/clarity-telemetry.js"><\/script>`;
+            }
+            document.getElementById('integrationModal').style.display = 'flex';
+        }
 
     // Auto-refresh every 30s
     setInterval(loadAllData, 30000);
