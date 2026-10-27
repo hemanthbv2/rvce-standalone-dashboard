@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVCE Admissions Portal · Live Chatbot Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #E31E24;
+            --primary-dark: #b9151a;
+            --bg: #0b0f19;
+            --card: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+        /* Simulated RVCE Header */
+        header {
+            display:flex; justify-content:space-between; align-items:center; padding:18px 40px;
+            background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(15px); border-bottom:1px solid var(--border);
+            position:sticky; top:0; z-index:100;
+        }
+        .brand { display:flex; align-items:center; gap:12px; }
+        .brand-logo { width:38px; height:38px; background:var(--primary); border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:#fff; }
+        .brand-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+        .brand-sub { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+
+        .nav-links { display:flex; gap:24px; list-style:none; }
+        .nav-links a { color:var(--text-dim); text-decoration:none; font-size:13.5px; font-weight:600; transition:0.2s; }
+        .nav-links a:hover { color:#fff; }
+
+        /* Hero Banner */
+        .hero {
+            max-width:1100px; margin:60px auto; padding:0 24px; text-align:center;
+        }
+        .badge {
+            background:rgba(227,30,36,0.15); color:var(--primary); border:1px solid rgba(227,30,36,0.3);
+            padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; display:inline-block; margin-bottom:20px;
+        }
+        h1 { font-size:46px; font-weight:800; line-height:1.2; letter-spacing:-1px; margin-bottom:20px; }
+        p.hero-sub { font-size:16px; color:var(--text-dim); max-width:650px; margin:0 auto 30px; line-height:1.6; }
+
+        /* Interactive Simulator Test Cards */
+        .test-box {
+            background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px;
+            max-width:850px; margin:0 auto; text-align:left; backdrop-filter:blur(20px);
+        }
+        .test-title { font-size:18px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+        .test-desc { font-size:13.5px; color:var(--text-dim); margin-bottom:24px; line-height:1.5; }
+
+        .actions-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:24px; }
+        .test-btn {
+            padding:14px 18px; border-radius:12px; border:1px solid var(--border); background:rgba(15,23,42,0.8);
+            color:#fff; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:0.2s; text-align:left;
+        }
+        .test-btn:hover { background:rgba(227,30,36,0.15); border-color:var(--primary); transform:translateY(-2px); }
+        .test-btn strong { display:block; margin-bottom:4px; font-size:14px; color:#fff; }
+        .test-btn span { font-size:11.5px; color:var(--text-dim); }
+
+        /* Rage Click Target Button */
+        .rage-target-btn {
+            background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444;
+            padding:12px 20px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; transition:0.1s;
+        }
+        .rage-target-btn:active { transform:scale(0.96); background:rgba(239,68,68,0.3); }
+
+        /* Floating RVCE Chat Widget */
+        #rvce-widget-bubble {
+            position:fixed; bottom:28px; right:28px; width:60px; height:60px; border-radius:50%;
+            background:var(--primary); box-shadow:0 10px 25px var(--primary-glow); display:flex; align-items:center;
+            justify-content:center; cursor:pointer; z-index:999; transition:0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #rvce-widget-bubble:hover { transform:scale(1.08); }
+        #rvce-widget-bubble svg { width:28px; height:28px; color:#fff; }
+
+        /* Chat Widget Window */
+        #rvce-chat-modal {
+            position:fixed; bottom:100px; right:28px; width:380px; height:540px; border-radius:24px;
+            background:#0f172a; border:1px solid var(--border); box-shadow:0 25px 60px rgba(0,0,0,0.8);
+            display:none; flex-direction:column; z-index:1000; overflow:hidden; backdrop-filter:blur(25px);
+        }
+        .chat-header {
+            padding:18px 20px; background:linear-gradient(135deg, #E31E24, #991b1b);
+            color:#fff; display:flex; justify-content:space-between; align-items:center;
+        }
+        .chat-messages {
+            flex-grow:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;
+        }
+        .chat-bubble {
+            max-width:80%; padding:11px 15px; border-radius:14px; font-size:13px; line-height:1.45; word-wrap:break-word;
+        }
+        .bubble-bot { background:rgba(30,41,59,0.8); color:#f8fafc; align-self:flex-start; border:1px solid var(--border); }
+        .bubble-user { background:var(--primary); color:#fff; align-self:flex-end; }
+
+        .chat-input-bar {
+            padding:14px; border-top:1px solid var(--border); display:flex; gap:8px; background:rgba(15,23,42,0.6);
+        }
+        .chat-input {
+            flex-grow:1; padding:10px 14px; border-radius:10px; background:rgba(30,41,59,0.6); border:1px solid var(--border);
+            color:#fff; font-family:inherit; font-size:13px; outline:none;
+        }
+        .chat-send-btn {
+            background:var(--primary); color:#fff; border:none; padding:0 16px; border-radius:10px; font-weight:700; cursor:pointer;
+        }
+        .chips-container { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+        .chip {
+            padding:6px 10px; border-radius:8px; font-size:11px; background:rgba(255,255,255,0.06);
+            border:1px solid var(--border); color:#cbd5e1; cursor:pointer; transition:0.2s;
+        }
+        .chip:hover { background:rgba(227,30,36,0.2); border-color:var(--primary); color:#fff; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="brand-logo">RV</div>
+            <div>
+                <div class="brand-title">RV College of Engineering</div>
+                <div class="brand-sub">Autonomous Institution · Bengaluru</div>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" onclick="navigateSim('/admissions')">Admissions</a></li>
+            <li><a href="#" onclick="navigateSim('/departments/cse')">Departments</a></li>
+            <li><a href="#" onclick="navigateSim('/placements')">Placements</a></li>
+            <li><a href="#" onclick="navigateSim('/fees')">Fees Structure</a></li>
+            <li><a href="/" target="_blank" style="color:var(--primary); font-weight:700;">Open Clarity Dashboard →</a></li>
+        </ul>
+    </header>
+
+    <div class="hero">
+        <span class="badge">Live Chatbot & Clarity Telemetry Simulation</span>
+        <h1>Experience Microsoft Clarity Chatbot Tracking in Real-Time</h1>
+        <p class="hero-sub">
+            Interact with the simulated admissions assistant below. Click options, type questions, submit a lead form, or trigger rage clicks. Every single interaction streams live into your <strong>RVCE Command Center</strong>!
+        </p>
+
+        <div class="test-box">
+            <div class="test-title">🧪 Microsoft Clarity Live Telemetry Triggers</div>
+            <div class="test-desc">Click any trigger below. Every user query, button click, outgoing link, and page redirection streams in real-time to your <strong>RVCE Command Center</strong>:</div>
+
+            <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#818cf8; text-transform:uppercase; letter-spacing:0.8px;">1. User Chatbot Queries</div>
+            <div class="actions-grid">
+                <button class="test-btn" onclick="askQuestion('What is the KCET and COMEDK cutoff rank for Computer Science?', 'cutoffs')">
+                    <strong>🎯 Ask CSE Cutoffs</strong>
+                    <span>Queries 2025 cutoff matrix & gets PDF link</span>
+                </button>
+                <button class="test-btn" onclick="askQuestion('What was the highest package in CSE for 2025?', 'placements')">
+                    <strong>💼 Ask Placements</strong>
+                    <span>Queries 67 LPA highest package stats</span>
+                </button>
+                <button class="test-btn" onclick="askQuestion('What is the fee structure for B.E. Management Quota?', 'fees')">
+                    <strong>💰 Ask Fee Structure</strong>
+                    <span>Queries branch fee details & redirection</span>
+                </button>
+                <button class="test-btn" onclick="submitTestLead()">
+                    <strong>📝 Submit Lead</strong>
+                    <span>Captures candidate contact details</span>
+                </button>
+            </div>
+
+            <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#10b981; text-transform:uppercase; letter-spacing:0.8px;">2. Clicked Outgoing Links (Tracked with Destination URL)</div>
+            <div class="actions-grid">
+                <a href="https://rvce.edu.in/files/rvce_cutoff_2025.pdf" target="_blank" class="test-btn" style="text-decoration:none;">
+                    <strong>📄 Download 2025 Cutoff PDF</strong>
+                    <span>Target: rvce.edu.in/files/rvce_cutoff_2025.pdf</span>
+                </a>
+                <a href="https://comedk.org/counselling-2025" target="_blank" class="test-btn" style="text-decoration:none;">
+                    <strong>🌐 COMEDK Counselling Portal</strong>
+                    <span>Target: comedk.org (External Link)</span>
+                </a>
+                <a href="https://kea.kar.nic.in" target="_blank" class="test-btn" style="text-decoration:none;">
+                    <strong>🏛️ KEA KCET Official Portal</strong>
+                    <span>Target: kea.kar.nic.in (Govt Portal)</span>
+                </a>
+                <a href="https://rvce.edu.in/files/placement_brochure_2025.pdf" target="_blank" class="test-btn" style="text-decoration:none;">
+                    <strong>📊 Placement Brochure PDF</strong>
+                    <span>Target: rvce.edu.in/placement_brochure</span>
+                </a>
+            </div>
+
+            <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#f59e0b; text-transform:uppercase; letter-spacing:0.8px;">3. Page Redirections (Where does user go after that?)</div>
+            <div class="actions-grid">
+                <button class="test-btn" onclick="navigateSim('/admissions')">
+                    <strong>🔄 Redirect ➔ /admissions</strong>
+                    <span>Simulates navigation to Admissions page</span>
+                </button>
+                <button class="test-btn" onclick="navigateSim('/fees-structure')">
+                    <strong>🔄 Redirect ➔ /fees-structure</strong>
+                    <span>Simulates navigation to Fees Breakdown</span>
+                </button>
+                <button class="test-btn" onclick="navigateSim('/departments/cse')">
+                    <strong>🔄 Redirect ➔ /departments/cse</strong>
+                    <span>Simulates navigation to CSE Department</span>
+                </button>
+                <button class="test-btn" onclick="navigateSim('/apply-now')">
+                    <strong>🔄 Redirect ➔ /apply-now</strong>
+                    <span>Simulates navigation to Application Form</span>
+                </button>
+            </div>
+
+            <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong style="font-size:13.5px; color:#ef4444;">⚡ Rage Click Simulator:</strong>
+                    <p style="font-size:12px; color:var(--text-dim);">Click this button 4 times rapidly to simulate user frustration.</p>
+                </div>
+                <button class="rage-target-btn" id="rageTargetBtn">Click Rapidly (Rage Click)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Redirection Toast Notice -->
+    <div id="toastNotice" style="position:fixed; top:20px; right:20px; background:rgba(15,23,42,0.95); border:1px solid #10b981; color:#10b981; padding:12px 20px; border-radius:12px; font-size:13px; font-weight:700; box-shadow:0 10px 25px rgba(0,0,0,0.5); z-index:9999; opacity:0; pointer-events:none; transition:opacity 0.3s;"></div>
+
+    <!-- Floating Chat Widget -->
+    <div id="rvce-widget-bubble" onclick="toggleChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+
+    <!-- Chat Modal Window -->
+    <div id="rvce-chat-modal">
+        <div class="chat-header">
+            <div>
+                <h3 style="font-size:14.5px; font-weight:800;">RVCE Admissions Assistant</h3>
+                <span style="font-size:11px; opacity:0.85;">● Online · Autonomous Campus</span>
+            </div>
+            <button onclick="toggleChat()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer;">✕</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-bubble bubble-bot">
+                Hello! Welcome to RV College of Engineering. How can I help you regarding admissions, cutoffs, or campus placements today?
+                <div class="chips-container">
+                    <button class="chip" onclick="askQuestion('What is the KCET and COMEDK cutoff rank for Computer Science?', 'cutoffs')">🎯 Cutoffs</button>
+                    <button class="chip" onclick="askQuestion('What was the highest package in CSE for 2025?', 'placements')">💼 Placements</button>
+                    <button class="chip" onclick="askQuestion('What is the fee structure for B.E. Management Quota?', 'fees')">💰 Fees</button>
+                </div>
+            </div>
+        </div>
+        <div class="chat-input-bar">
+            <input type="text" id="chatInput" class="chat-input" placeholder="Ask about admissions, placements..." onkeydown="if(event.key==='Enter') sendUserMsg()">
+            <button class="chat-send-btn" onclick="sendUserMsg()">Send</button>
+        </div>
+    </div>
+
+    <!-- Drop-in Clarity Telemetry Engine -->
+    <script>
+        window.RVCE_TELEMETRY_URL = (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3001')) 
+            ? 'http://localhost:3001' 
+            : window.location.origin;
+    </script>
+    <script src="/clarity-telemetry.js"></script>
+
+    <script>
+        const chatModal = document.getElementById('rvce-chat-modal');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+
+        function toggleChat() {
+            const isOpen = chatModal.style.display === 'flex';
+            chatModal.style.display = isOpen ? 'none' : 'flex';
+            if (!isOpen && window.RVCETelemetry) {
+                window.RVCETelemetry.trackBotOpen(window.location.href);
+            }
+        }
+
+        const KNOWLEDGE_BASE = {
+            placements: {
+                text: "The highest package in CSE for the 2024-2025 batch was 67 LPA offered by Atlassian, with an average package of 21.6 LPA across top recruiters.",
+                links: `<div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+                    <a href="https://rvce.edu.in/files/placement_brochure_2025.pdf" target="_blank" style="color:#60a5fa; font-weight:700; font-size:12px; text-decoration:underline;">📊 Download 2025 Placement Report (PDF)</a>
+                    <button class="chip" style="align-self:flex-start; margin-top:4px;" onclick="navigateSim('/placements')">🔄 Go to Placements Page</button>
+                </div>`
+            },
+            cutoffs: {
+                text: "For 2024-2025, RVCE KCET cutoff for CSE was Rank 310 (GM). For COMEDK, the closing rank was 465 in Round 3.",
+                links: `<div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+                    <a href="https://rvce.edu.in/files/rvce_cutoff_2025.pdf" target="_blank" style="color:#60a5fa; font-weight:700; font-size:12px; text-decoration:underline;">📄 Download 2025 Cutoff Table PDF</a>
+                    <a href="https://comedk.org/counselling-2025" target="_blank" style="color:#34d399; font-weight:700; font-size:12px; text-decoration:underline;">🌐 COMEDK Official Counselling Portal</a>
+                    <button class="chip" style="align-self:flex-start; margin-top:4px;" onclick="navigateSim('/admissions')">🔄 Go to Admissions Page</button>
+                </div>`
+            },
+            fees: {
+                text: "Management quota fees vary by branch. For CSE & AI/ML, it is approximately 14-16 Lakhs per year. Government quota via KCET is ~1.1 Lakhs/yr.",
+                links: `<div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+                    <a href="https://rvce.edu.in/fees-structure" target="_blank" style="color:#60a5fa; font-weight:700; font-size:12px; text-decoration:underline;">💳 View Official Fees Structure Table</a>
+                    <button class="chip" style="align-self:flex-start; margin-top:4px;" onclick="navigateSim('/fees-structure')">🔄 Redirect to Fees Breakdown</button>
+                    <button class="chip" style="align-self:flex-start;" onclick="navigateSim('/apply-now')">📝 Apply for Management Quota</button>
+                </div>`
+            },
+            hostel: {
+                text: "On-campus hostels (Chamundi & Cauvery blocks) are available for 1st-year students with 2/3 sharing rooms, Wi-Fi, and mess facilities.",
+                links: `<div style="margin-top:8px;">
+                    <a href="https://rvce.edu.in/hostel-facilities" target="_blank" style="color:#60a5fa; font-weight:700; font-size:12px; text-decoration:underline;">🏠 View Hostel Rules & Tariffs</a>
+                </div>`
+            }
+        };
+
+        function askQuestion(q, intent) {
+            if (chatModal.style.display !== 'flex') chatModal.style.display = 'flex';
+            appendMsg('user', q);
+            const ansObj = KNOWLEDGE_BASE[intent] || { text: "Thank you for asking. Our admissions office can provide further specifics on that.", links: '' };
+            setTimeout(() => {
+                appendMsg('bot', ansObj.text, ansObj.links);
+                if (window.RVCETelemetry) {
+                    window.RVCETelemetry.trackMessage(q, intent, ansObj.text);
+                }
+            }, 450);
+        }
+
+        function sendUserMsg() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            chatInput.value = '';
+            appendMsg('user', text);
+
+            let intent = 'general';
+            if (/placement|package|salary|recruit/i.test(text)) intent = 'placements';
+            else if (/cutoff|rank|kcet|comedk/i.test(text)) intent = 'cutoffs';
+            else if (/fee|cost|tuition|money|quota/i.test(text)) intent = 'fees';
+            else if (/hostel|room|stay|food/i.test(text)) intent = 'hostel';
+            else intent = 'unmatched';
+
+            const ansObj = KNOWLEDGE_BASE[intent] || { text: "I have recorded your question. You can connect with our admissions desk or check the links below:", links: '<a href="https://rvce.edu.in/contact" target="_blank" style="color:#60a5fa; font-weight:700; font-size:12px; text-decoration:underline;">📞 RVCE Admissions Directory</a>' };
+            setTimeout(() => {
+                appendMsg('bot', ansObj.text, ansObj.links);
+                if (window.RVCETelemetry) {
+                    window.RVCETelemetry.trackMessage(text, intent, ansObj.text);
+                }
+            }, 500);
+        }
+
+        let chatHistory = [];
+        try {
+            const saved = sessionStorage.getItem('rvce_chat_history');
+            if (saved) chatHistory = JSON.parse(saved);
+        } catch(e) {}
+
+        function restoreChatHistory() {
+            if (chatHistory && chatHistory.length > 0) {
+                chatHistory.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = `chat-bubble bubble-${item.sender}`;
+                    div.innerHTML = `<div>${item.text}</div>${item.htmlExtra || ''}`;
+                    chatMessages.appendChild(div);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+        restoreChatHistory();
+
+        function appendMsg(sender, text, htmlExtra = '') {
+            const div = document.createElement('div');
+            div.className = `chat-bubble bubble-${sender}`;
+            div.innerHTML = `<div>${text}</div>${htmlExtra}`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            chatHistory.push({ sender, text, htmlExtra, time: Date.now() });
+            try { sessionStorage.setItem('rvce_chat_history', JSON.stringify(chatHistory)); } catch(e) {}
+        }
+
+        function submitTestLead() {
+            const candidateName = "Priya Sharma";
+            const phone = "9845012345";
+            const email = "priya.sharma@example.com";
+            
+            if (window.RVCETelemetry) {
+                window.RVCETelemetry.trackLead({
+                    name: candidateName,
+                    phone: phone,
+                    email: email,
+                    branch: "Computer Science & Engineering",
+                    city: "Bengaluru"
+                });
+            }
+            showToast(`✅ Lead Captured: ${candidateName} (${phone}) ➔ Synced to CRM & Supabase!`);
+        }
+
+        function navigateSim(path) {
+            history.pushState(null, '', path);
+            document.title = `RVCE · ${path.replace('/', '').toUpperCase() || 'Home'}`;
+            showToast(`🔄 Redirected to: ${path} (Logged to Clarity Clickstream & Supabase)`);
+            const div = document.createElement('div');
+            div.style.cssText = 'text-align:center; font-size:11px; color:#94a3b8; margin:10px 0; border-top:1px dashed rgba(255,255,255,0.15); padding-top:6px;';
+            div.innerHTML = `📍 Navigated to <strong>${path}</strong> · Chat continues seamlessly`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showToast(msg) {
+            const notif = document.getElementById('toastNotice');
+            if (notif) {
+                notif.innerHTML = msg;
+                notif.style.opacity = '1';
+                setTimeout(() => { notif.style.opacity = '0'; }, 3500);
+            }
+        }
+    </script>
+</body>
+</html>

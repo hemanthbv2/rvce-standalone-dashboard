@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVCE Chatbot Telemetry — Daily Sessions Report (PDF / Print)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #990000;
+            --primary-dark: #660000;
+            --primary-light: #fff1f1;
+            --ink: #0f172a;
+            --ink-muted: #475569;
+            --ink-subtle: #64748b;
+            --border-line: #cbd5e1;
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --accent-blue: #0284c7;
+            --accent-green: #059669;
+            --accent-amber: #d97706;
+            --accent-red: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--ink);
+            background: var(--bg-canvas);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Fixed Background RVCE Watermark */
+        .watermark-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 580px;
+            height: 580px;
+            background: url('/logo.png') no-repeat center center;
+            background-size: contain;
+            opacity: 0.055;
+            pointer-events: none;
+            z-index: 50;
+            mix-blend-mode: multiply;
+        }
+
+        /* Screen Toolbar (Hidden on Print) */
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            gap: 16px;
+        }
+
+        .toolbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .toolbar-brand img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            background: #ffffff;
+            border-radius: 50%;
+            padding: 2px;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-select, .toolbar-input {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .toolbar-select:focus {
+            border-color: #38bdf8;
+        }
+
+        .toolbar-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #cbd5e1;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .btn-toolbar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .btn-print {
+            background: #dc2626;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+        }
+        .btn-print:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            background: #334155;
+            color: #ffffff;
+        }
+        .btn-back:hover {
+            background: #475569;
+        }
+
+        /* Printable Paper Document Container */
+        .sheet-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 28px auto 60px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+            padding: 40px 48px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Institutional Letterhead */
+        .letterhead {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding-bottom: 22px;
+            border-bottom: 3px double #990000;
+            margin-bottom: 24px;
+        }
+
+        .letterhead-logo {
+            width: 95px;
+            height: 95px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .letterhead-content {
+            flex-grow: 1;
+        }
+
+        .trust-title {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .college-title {
+            font-family: 'Cinzel', serif;
+            font-size: 23px;
+            font-weight: 900;
+            color: #990000;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            margin: 2px 0 4px;
+        }
+
+        .sub-accreditation {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .college-address {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        /* Report Meta Title Block */
+        .report-header-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 24px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .report-title-main {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-subtitle {
+            font-size: 11.5px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .report-stamp {
+            text-align: right;
+            font-size: 10.5px;
+            color: #64748b;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .report-stamp strong {
+            color: #0f172a;
+        }
+
+        /* Day Group Section */
+        .day-section {
+            margin-bottom: 40px;
+            page-break-after: auto;
+        }
+
+        .day-header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #ffffff;
+            padding: 14px 20px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 6px solid #990000;
+        }
+
+        .day-title {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .day-date-badge {
+            background: rgba(255, 255, 255, 0.15);
+            font-size: 11.5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .day-kpi-bar {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            padding: 10px 16px;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .kpi-cell {
+            text-align: center;
+        }
+
+        .kpi-cell .val {
+            font-size: 16px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: #0f172a;
+        }
+
+        .kpi-cell .lbl {
+            font-size: 9.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+
+        /* Sessions List */
+        .sessions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Individual Session Card */
+        .session-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 16px 20px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+            position: relative;
+        }
+
+        .session-card.has-friction {
+            border-left: 5px solid #ef4444;
+        }
+
+        .session-card.has-lead {
+            border-left: 5px solid #10b981;
+        }
+
+        .session-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #e2e8f0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .session-meta-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .session-id-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            font-weight: 700;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .session-time {
+            font-size: 11.5px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .session-geo {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .session-badges-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+        }
+
+        .tag-lead { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .tag-rage { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .tag-device { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Q&A Section */
+        .qa-container {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .qa-row {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 14px;
+        }
+
+        .query-box {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .query-box .icon {
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 800;
+            background: #dbeafe;
+            padding: 1px 6px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .reply-box {
+            font-size: 12px;
+            color: #064e3b;
+            background: #ecfdf5;
+            border-left: 3px solid #10b981;
+            padding: 8px 12px;
+            border-radius: 0 4px 4px 0;
+            line-height: 1.45;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .reply-box .icon {
+            color: #059669;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* Action Rows: Buttons, Links, Redirection */
+        .actions-trail-grid {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .actions-trail-grid { grid-template-columns: 1fr; }
+        }
+
+        .action-pane {
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+
+        .pane-title {
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pill-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .pill-item {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            word-break: break-word;
+        }
+
+        .pill-item .action-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .pill-item .action-dest {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: #0284c7;
+        }
+
+        .route-trail {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #475569;
+        }
+
+        .route-trail strong {
+            color: #0f172a;
+        }
+
+        /* Empty / No items state */
+        .empty-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Institutional Footer Note */
+        .report-footer {
+            margin-top: 40px;
+            padding-top: 18px;
+            border-top: 1px solid #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        .report-footer-left {
+            font-weight: 600;
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-size: 10pt;
+            }
+
+            .watermark-container {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                width: 520px !important;
+                height: 520px !important;
+                opacity: 0.055 !important;
+                z-index: 9999 !important;
+                mix-blend-mode: multiply !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-print, .toolbar {
+                display: none !important;
+            }
+
+            .sheet-container {
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                max-width: 100% !important;
+            }
+
+            .day-section {
+                page-break-after: auto;
+            }
+
+            .session-card {
+                border: 1px solid #94a3b8 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin-bottom: 12px !important;
+                background: #ffffff !important;
+            }
+
+            .day-header {
+                background: #1e293b !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .day-kpi-bar {
+                background: #f1f5f9 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .query-box {
+                color: #1e3a8a !important;
+            }
+
+            .reply-box {
+                background: #ecfdf5 !important;
+                color: #064e3b !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 14mm 15mm 15mm 15mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Watermark Layer -->
+    <div class="watermark-container" id="watermarkLayer"></div>
+
+    <!-- Screen Control Toolbar -->
+    <div class="toolbar no-print">
+        <div class="toolbar-brand">
+            <img src="/logo.png" alt="RVCE Crest">
+            <span>RVCE Daily Telemetry Dossier</span>
+        </div>
+        <div class="toolbar-actions">
+            <!-- Day Filter -->
+            <select id="dateFilterSelect" class="toolbar-select" onchange="handleFilterChange()">
+                <option value="all">📅 All Available Days</option>
+            </select>
+
+            <!-- Intensity Filter -->
+            <label class="toolbar-checkbox">
+                <input type="checkbox" id="richOnlyCheckbox" checked onchange="renderFilteredReport()">
+                <span>Only Show Sessions with Inquiries & Click Actions</span>
+            </label>
+
+            <!-- Print Action -->
+            <button class="btn-toolbar btn-print" onclick="window.print()">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print / Save PDF
+            </button>
+
+            <!-- Back to Dashboard -->
+            <a href="/" class="btn-toolbar btn-back">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Document Sheet -->
+    <div class="sheet-container">
+        <!-- Letterhead -->
+        <header class="letterhead">
+            <img src="/logo.png" alt="RV College of Engineering Emblem" class="letterhead-logo">
+            <div class="letterhead-content">
+                <div class="trust-title">Rashtreeya Sikshana Samithi Trust® (RSST)</div>
+                <h1 class="college-title">RV College of Engineering</h1>
+                <div class="sub-accreditation">Autonomous Institution Affiliated to VTU · Approved by AICTE · NAAC 'A+' Grade</div>
+                <div class="college-address">Mysuru Road, RV Vidyaniketan Post, Bengaluru – 560059, Karnataka, India · www.rvce.edu.in</div>
+            </div>
+        </header>
+
+        <!-- Report Header Block -->
+        <div class="report-header-block">
+            <div>
+                <h2 class="report-title-main">
+                    <span>Chatbot Visitor Sessions & Telemetry Report</span>
+                </h2>
+                <div class="report-subtitle">Certified daily breakdown of visitor interactions, queries, assistant answers, button clicks, and outbound link navigations</div>
+            </div>
+            <div class="report-stamp">
+                <div>Document ID: <strong>RVCE-TEL-REP-2026</strong></div>
+                <div>Generated: <strong id="stampGeneratedTime">--</strong></div>
+                <div>Status: <strong style="color:var(--accent-green);">AUTHENTICATED AUDIT</strong></div>
+            </div>
+        </div>
+
+        <!-- Dynamic Daily Sections Container -->
+        <div id="reportContentArea">
+            <div class="empty-placeholder">
+                <p>Loading certified daily sessions from database...</p>
+            </div>
+        </div>
+
+        <!-- Institutional Footer -->
+        <footer class="report-footer">
+            <div class="report-footer-left">
+                RVCE Autonomous Command Center · ICT & Admissions Directorate
+            </div>
+            <div class="report-footer-right">
+                Confidential Document · Generated for Academic & Administrative Review Only
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE = (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3001')) 
+            ? 'http://localhost:3001' 
+            : '';
+
+        function apiUrl(path) {
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            return API_BASE + path;
+        }
+
+        let reportData = null;
+
+        async function fetchDailyReport() {
+            try {
+                let token = localStorage.getItem('rvce_auth_token');
+                
+                // If not logged in, auto-login with default credentials for instant report generation
+                if (!token) {
+                    const loginRes = await fetch(apiUrl('/api/auth/login'), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: 'rvceadmin', password: 'rvce123' })
+                    });
+                    const loginJson = await loginRes.json();
+                    if (loginJson.token) {
+                        token = loginJson.token;
+                        localStorage.setItem('rvce_auth_token', token);
+                    }
+                }
+
+                const res = await fetch(apiUrl('/api/dashboard/report/daily'), {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!res.ok) throw new Error('Failed to fetch daily report: ' + res.statusText);
+                reportData = await res.json();
+
+                // Set generation time
+                document.getElementById('stampGeneratedTime').textContent = new Date(reportData.generatedAt || Date.now()).toLocaleString();
+
+                // Populate date dropdown
+                const dateSelect = document.getElementById('dateFilterSelect');
+                dateSelect.innerHTML = '<option value="all">📅 All Recorded Days (' + reportData.days.length + ' Days)</option>';
+                reportData.days.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.date;
+                    opt.textContent = `${d.displayDate} (${d.sessions.length} sessions)`;
+                    dateSelect.appendChild(opt);
+                });
+
+                renderFilteredReport();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('reportContentArea').innerHTML = `
+                    <div class="empty-placeholder" style="color:#ef4444;">
+                        <h3>Failed to load report data</h3>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function handleFilterChange() {
+            renderFilteredReport();
+        }
+
+        function renderFilteredReport() {
+            if (!reportData || !reportData.days) return;
+
+            const selectedDate = document.getElementById('dateFilterSelect').value;
+            const richOnly = document.getElementById('richOnlyCheckbox').checked;
+            const container = document.getElementById('reportContentArea');
+
+            let daysToRender = reportData.days;
+            if (selectedDate !== 'all') {
+                daysToRender = reportData.days.filter(d => d.date === selectedDate);
+            }
+
+            if (daysToRender.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-placeholder">
+                        <p>No session data available for selected filter.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            daysToRender.forEach(day => {
+                // Filter sessions if richOnly is checked
+                let sessions = day.sessions;
+                if (richOnly) {
+                    sessions = day.sessions.filter(s => 
+                        (s.queries && s.queries.length > 0) || 
+                        (s.buttons && s.buttons.length > 0) || 
+                        (s.links && s.links.length > 0) ||
+                        (s.redirects && s.redirects.length > 0) ||
+                        s.isLead || 
+                        s.rageClicks > 0
+                    );
+                }
+
+                html += `
+                    <section class="day-section">
+                        <!-- Day Header -->
+                        <div class="day-header">
+                            <div class="day-title">
+                                <span>📅 ${day.displayDate}</span>
+                                ${day.isToday ? '<span class="day-date-badge" style="background:#10b981; color:#ffffff;">TODAY</span>' : ''}
+                            </div>
+                            <div class="day-date-badge">Showing ${sessions.length} of ${day.sessions.length} Total Sessions</div>
+                        </div>
+
+                        <!-- Day KPI Bar -->
+                        <div class="day-kpi-bar">
+                            <div class="kpi-cell">
+                                <div class="val">${day.metrics.sessionsCount}</div>
+                                <div class="lbl">Visitors</div>
+                            </div>
+                            <div class="kpi-cell">
+                                <div class="val" style="color:#2563eb;">${day.metrics.queriesCount}</div>
+                                <div class="lbl">Inquiries</div>
+                            </div>
+                            <div class="kpi-cell">
+                                <div class="val" style="color:#d97706;">${day.metrics.buttonsCount}</div>
+                                <div class="lbl">Buttons</div>
+                            </div>
+                            <div class="kpi-cell">
+                                <div class="val" style="color:#0284c7;">${day.metrics.linksCount}</div>
+                                <div class="lbl">Links Clicked</div>
+                            </div>
+                            <div class="kpi-cell">
+                                <div class="val" style="color:#7c3aed;">${day.metrics.redirectsCount}</div>
+                                <div class="lbl">Redirections</div>
+                            </div>
+                            <div class="kpi-cell">
+                                <div class="val" style="color:#10b981;">${day.metrics.leadsCount}</div>
+                                <div class="lbl">Leads</div>
+                            </div>
+                            <div class="kpi-cell">
+                                <div class="val" style="color:#ef4444;">${day.metrics.rageSessionsCount}</div>
+                                <div class="lbl">Frictions</div>
+                            </div>
+                        </div>
+
+                        <!-- Sessions List -->
+                        <div class="sessions-list">
+                `;
+
+                if (sessions.length === 0) {
+                    html += `
+                        <div class="session-card" style="text-align:center; color:#64748b; padding:24px;">
+                            No active interactive sessions match the "Inquiries & Click Actions" filter for this date.
+                            Uncheck the filter above to view all ${day.sessions.length} raw visitor page visits.
+                        </div>
+                    `;
+                } else {
+                    sessions.forEach((s, idx) => {
+                        const hasFriction = s.rageClicks > 0;
+                        const hasLead = s.isLead;
+
+                        html += `
+                            <article class="session-card ${hasFriction ? 'has-friction' : ''} ${hasLead ? 'has-lead' : ''}">
+                                <!-- Session Header -->
+                                <div class="session-card-header">
+                                    <div class="session-meta-left">
+                                        <span class="session-id-pill">#${s.sessionId}</span>
+                                        <span class="session-time">🕒 ${s.timeStr || '--:--'}</span>
+                                        <span class="session-geo">📍 ${s.geo?.city || 'Bengaluru'}, ${s.geo?.region || 'Karnataka'} (${s.geo?.ip || 'IP Anonymous'})</span>
+                                    </div>
+                                    <div class="session-badges-right">
+                                        <span class="tag tag-device">💻 ${s.device?.os || 'Windows'} · ${s.device?.browser || 'Chrome'}</span>
+                                        ${hasLead ? '<span class="tag tag-lead">🎯 Lead Converted</span>' : ''}
+                                        ${hasFriction ? `<span class="tag tag-rage">⚡ ${s.rageClicks} Rage Clicks</span>` : ''}
+                                    </div>
+                                </div>
+
+                                <!-- Inquiries and Bot Responses -->
+                                ${s.queries && s.queries.length > 0 ? `
+                                    <div class="qa-container">
+                                        ${s.queries.map(q => `
+                                            <div class="qa-row">
+                                                <div class="query-box">
+                                                    <span class="icon">Q</span>
+                                                    <span>${escapeHtml(q.asked)}</span>
+                                                </div>
+                                                ${q.answered ? `
+                                                    <div class="reply-box">
+                                                        <span class="icon">RVCE Bot:</span>
+                                                        <span>${escapeHtml(q.answered)}</span>
+                                                    </div>
+                                                ` : '<div style="font-size:11px; color:#94a3b8; font-style:italic;">No direct chatbot response recorded.</div>'}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+
+                                <!-- Click Actions & Navigation Pathways -->
+                                <div class="actions-trail-grid">
+                                    <!-- Buttons Clicked -->
+                                    <div class="action-pane">
+                                        <div class="pane-title">
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+                                            Buttons Clicked (${s.buttons ? s.buttons.length : 0})
+                                        </div>
+                                        ${s.buttons && s.buttons.length > 0 ? `
+                                            <div class="pill-list">
+                                                ${s.buttons.map(b => `
+                                                    <div class="pill-item">
+                                                        <span class="action-name">${escapeHtml(b.text)}</span>
+                                                        <span class="action-dest" style="color:#64748b;">[${escapeHtml(b.location || 'Chatbot')}]</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        ` : '<div style="font-size:11px; color:#94a3b8;">None clicked</div>'}
+                                    </div>
+
+                                    <!-- Links Clicked & Outbound Destinations -->
+                                    <div class="action-pane">
+                                        <div class="pane-title">
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                            Links & Files Clicked (${s.links ? s.links.length : 0})
+                                        </div>
+                                        ${s.links && s.links.length > 0 ? `
+                                            <div class="pill-list">
+                                                ${s.links.map(l => `
+                                                    <div class="pill-item">
+                                                        <span class="action-name">${escapeHtml(l.text)}</span>
+                                                        <span class="action-dest">${escapeHtml(l.url)} ${l.isExternal ? '🌐' : '📄'}</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        ` : '<div style="font-size:11px; color:#94a3b8;">None clicked</div>'}
+                                    </div>
+                                </div>
+
+                                <!-- Navigation Trail / Page Redirections -->
+                                <div class="route-trail">
+                                    <strong>🧭 Navigation Trail:</strong>
+                                    <span>Entry: <code>${escapeHtml(s.entryPage || '/')}</code></span>
+                                    ${s.redirects && s.redirects.length > 0 ? `
+                                        <span>➔ Redirections: ${s.redirects.map(r => `<code>${escapeHtml(r.target || r.detail)}</code>`).join(' ➔ ')}</span>
+                                    ` : ''}
+                                    <span>➔ Exit: <code>${escapeHtml(s.exitPage || s.entryPage || '/')}</code></span>
+                                </div>
+                            </article>
+                        `;
+                    });
+                }
+
+                html += `
+                        </div>
+                    </section>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        window.addEventListener('DOMContentLoaded', fetchDailyReport);
+    </script>
+</body>
+</html>

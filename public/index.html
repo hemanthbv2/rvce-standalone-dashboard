@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVCE Chatbot Command Center & Microsoft Clarity Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #E31E24;
+            --primary-glow: rgba(227, 30, 36, 0.4);
+            --indigo: #6366f1;
+            --indigo-glow: rgba(99, 102, 241, 0.35);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #030712;
+            --sidebar: rgba(15, 23, 42, 0.85);
+            --card: rgba(30, 41, 59, 0.45);
+            --card-hover: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* --- Dynamic Mesh Background --- */
+        .mesh-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 90% 85%, rgba(227, 30, 36, 0.1) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1) 0%, rgba(3, 7, 18, 1) 100%);
+        }
+
+        /* --- Sidebar Navigation --- */
+        aside {
+            width: 270px;
+            background: var(--sidebar);
+            backdrop-filter: blur(25px);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 28px 20px;
+            z-index: 20;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .logo-box {
+            width: 42px;
+            height: 42px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            box-shadow: 0 0 24px var(--primary-glow);
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text h2 {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+
+        .logo-text p {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-dim);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            transform: translateX(3px);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.12);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.8;
+        }
+
+        .badge-live {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse {
+            width: 7px;
+            height: 7px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulseAnim 2s infinite;
+        }
+
+        @keyframes pulseAnim {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.85);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* --- Main Content Area --- */
+        main {
+            flex-grow: 1;
+            padding: 30px 38px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--card-hover);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #b9151a;
+        }
+
+        .btn-indigo {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+        }
+
+        .btn-indigo:hover {
+            background: rgba(99, 102, 241, 0.25);
+        }
+
+        /* --- Cards & Grids --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(16px);
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--indigo), var(--primary));
+            opacity: 0.7;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-val {
+            font-size: 30px;
+            font-weight: 800;
+            margin: 6px 0 2px;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-sub {
+            font-size: 11.5px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clarity-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .col-8 {
+            grid-column: span 8;
+        }
+
+        .col-4 {
+            grid-column: span 4;
+        }
+
+        .col-6 {
+            grid-column: span 6;
+        }
+
+        .col-12 {
+            grid-column: span 12;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+            backdrop-filter: blur(16px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-sub {
+            font-size: 11.5px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        /* Journey Bars */
+        .journey-list {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .journey-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 12.5px;
+        }
+
+        .journey-path {
+            font-family: monospace;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .journey-count {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        .exit-count {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+            text-align: left;
+        }
+
+        th {
+            padding: 12px 14px;
+            color: var(--text-dim);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 13px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tag {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-blue {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .tag-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .tag-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .tag-amber {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* --- Microsoft Clarity Replay Slide-Out Drawer --- */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .replay-drawer {
+            position: fixed;
+            top: 0;
+            right: -720px;
+            width: 720px;
+            max-width: 96vw;
+            height: 100%;
+            background: #0b0f19;
+            border-left: 1px solid var(--border);
+            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.85);
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .drawer-overlay.open .replay-drawer {
+            right: 0;
+        }
+
+        .drawer-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.6);
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .drawer-tabs::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .dtab {
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .dtab.active {
+            background: rgba(99, 102, 241, 0.18);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+        }
+
+        .drawer-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* --- Clickstream Journey Flow Cards (Clarity-grade sequential path) --- */
+        .journey-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            padding-left: 18px;
+        }
+
+        .journey-flow::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 12px;
+            bottom: 12px;
+            width: 2px;
+            background: linear-gradient(180deg, #6366f1 0%, #10b981 50%, #f59e0b 80%, #ef4444 100%);
+            opacity: 0.35;
+        }
+
+        .journey-card {
+            background: rgba(30, 41, 59, 0.55);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            position: relative;
+            transition: 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .journey-card:hover {
+            border-color: rgba(99, 102, 241, 0.45);
+            background: rgba(30, 41, 59, 0.85);
+            transform: translateX(3px);
+        }
+
+        .journey-step-badge {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+
+        .badge-land {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-bot {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .badge-query {
+            background: rgba(227, 30, 36, 0.15);
+            color: #ff6b6b;
+            border: 1px solid rgba(227, 30, 36, 0.35);
+        }
+
+        .badge-btn {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .badge-link {
+            background: rgba(14, 165, 233, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(14, 165, 233, 0.35);
+        }
+
+        .badge-redirect {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .badge-rage {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.45);
+        }
+
+        .badge-lead {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+            border: 1px solid rgba(234, 179, 8, 0.45);
+        }
+
+        .badge-exit {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .journey-query-box {
+            background: rgba(15, 23, 42, 0.85);
+            border-left: 3px solid #E31E24;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #fff;
+            margin: 8px 0;
+        }
+
+        .journey-reply-box {
+            background: rgba(30, 41, 59, 0.7);
+            border-left: 3px solid #6366f1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: #cbd5e1;
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .journey-button-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin: 6px 0;
+        }
+
+        .journey-link-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.35);
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #38bdf8;
+            margin: 6px 0;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .journey-redir-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #34d399;
+            margin: 6px 0;
+        }
+
+        /* Timeline Items */
+        .timeline-container {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .timeline-step {
+            position: relative;
+            margin-bottom: 18px;
+            font-size: 12.5px;
+        }
+
+        .step-dot {
+            position: absolute;
+            left: -28px;
+            top: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 2px solid var(--indigo);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-dot.rage {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.25);
+        }
+
+        .step-dot.message {
+            border-color: var(--primary);
+            background: rgba(227, 30, 36, 0.25);
+        }
+
+        .step-time {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .step-content {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .step-title {
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .step-desc {
+            color: var(--text-dim);
+            font-size: 12px;
+        }
+
+        /* Visual Chat Dialogue Replay Player */
+        .chat-replay-window {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: 480px;
+            overflow-y: auto;
+        }
+
+        .chat-bubble {
+            max-width: 82%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .bubble-bot {
+            align-self: flex-start;
+            background: rgba(30, 41, 59, 0.9);
+            color: #f8fafc;
+            border: 1px solid var(--border);
+            border-top-left-radius: 4px;
+        }
+
+        .bubble-user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: #fff;
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.25);
+        }
+
+        .bubble-meta {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* Login Screen */
+        #login-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: var(--card);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mesh-bg"></div>
+
+    <!-- Login Modal -->
+    <div id="login-view">
+        <div class="login-card">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:28px;">
+                <div class="logo-box">RV</div>
+                <div>
+                    <h2 style="font-size:19px; font-weight:800;">RVCE Intelligence</h2>
+                    <p style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
+                        Admin Command Center</p>
+                </div>
+            </div>
+            <div id="loginError"
+                style="display:none; padding:10px; border-radius:8px; background:rgba(239,68,68,0.15); color:#ef4444; font-size:12px; margin-bottom:16px; text-align:center;">
+            </div>
+            <label
+                style="font-size:12px; color:var(--text-dim); font-weight:600; display:block; margin-bottom:6px;">Username</label>
+            <input type="text" id="loginUsername" class="form-input" value="rvceadmin" placeholder="rvceadmin">
+            <label
+                style="font-size:12px; color:var(--text-dim); font-weight:600; display:block; margin-bottom:6px;">Password</label>
+            <input type="password" id="loginPassword" class="form-input" value="rvce123" placeholder="••••••••">
+            <button class="btn btn-primary" style="width:100%; padding:14px; font-size:14px; justify-content:center;"
+                onclick="handleLogin()">Sign In to Command Center</button>
+            <div style="margin-top:14px; font-size:11px; color:var(--text-dim); text-align:center;">
+                Backend Server: <span id="backendHostNotice"
+                    style="color:#60a5fa; font-weight:600;">http://localhost:3001</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside>
+        <div class="logo-area">
+            <div class="logo-box">RV</div>
+            <div class="logo-text">
+                <h2>RVCE Analytics</h2>
+                <p>Clarity Intelligence</p>
+            </div>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item active" onclick="switchTab('clarity')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18" />
+                    <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+                </svg>
+                Clarity Friction & UX
+            </li>
+            <li class="nav-item" onclick="switchTab('acquisition')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                </svg>
+                Acquisition & Geos
+            </li>
+            <li class="nav-item" onclick="switchTab('intelligence')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Chatbot AI Topics
+            </li>
+            <li class="nav-item" onclick="switchTab('sessions')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Session Replays
+            </li>
+            <li class="nav-item" onclick="switchTab('leads')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Leads CRM
+            </li>
+        </ul>
+
+        <div style="padding-top:18px; border-top:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="badge-live">
+                    <div class="pulse"></div>SYSTEM ONLINE
+                </span>
+                <span id="activeVisitorsBadge" style="font-size:11px; color:var(--text-dim); font-weight:700;">Live:
+                    --</span>
+            </div>
+            <div
+                style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:rgba(30,41,59,0.5); border:1px solid var(--border); border-radius:8px; margin-bottom:10px; font-size:11px;">
+                <span style="color:#818cf8; font-weight:700;">⚡ Supabase:</span>
+                <span id="supabaseStatusText" style="color:var(--text-dim);">Checking...</span>
+            </div>
+            <a href="/print-report.html" target="_blank" class="btn"
+                style="width:100%; justify-content:center; margin-bottom:8px; font-size:12px; background:rgba(220,38,38,0.18); color:#fca5a5; border-color:rgba(220,38,38,0.35);">🖨️
+                Daily PDF Report</a>
+            <a href="/test-chat.html" target="_blank" class="btn btn-indigo"
+                style="width:100%; justify-content:center; margin-bottom:8px; font-size:12px;">🚀 Open Chat
+                Simulator</a>
+            <button class="btn"
+                style="width:100%; justify-content:center; background:rgba(239,68,68,0.1); color:#ef4444; border-color:rgba(239,68,68,0.2);"
+                onclick="handleLogout()">Sign Out</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <header>
+            <div class="header-title">
+                <h1 id="pageHeading">Microsoft Clarity Chatbot Telemetry</h1>
+                <p id="pageSubHeading">Deep friction diagnostics, rage clicks, dead clicks, visitor journeys, and visual
+                    dialogue playback</p>
+            </div>
+            <div class="actions">
+                <button class="btn"
+                    style="background:rgba(99,102,241,0.15); color:#a5b4fc; border-color:rgba(99,102,241,0.35);"
+                    onclick="openIntegrationModal()">🔗 Chatbot Integration Link</button>
+                <a href="/test-chat.html" target="_blank" class="btn btn-indigo">🚀 Live Chatbot Simulator</a>
+                <a href="/print-report.html" target="_blank" class="btn"
+                    style="background:rgba(220,38,38,0.18); border-color:rgba(220,38,38,0.4); color:#fca5a5;"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="width:14px;height:14px;">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg> 🖨️ Daily PDF Report</a>
+                <button class="btn btn-indigo" onclick="seedDemoData()">⚡ Seed Clarity Demo</button>
+                <button class="btn" onclick="exportData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" style="width:14px;height:14px;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg> Export Data</button>
+                <button class="btn btn-primary" onclick="loadAllData()">↻ Refresh</button>
+            </div>
+        </header>
+
+        <!-- KPI Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Visitors</span>
+                <div class="stat-val" id="statSessions">--</div>
+                <div class="stat-sub"><span style="color:var(--success);">● Active today</span></div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Telemetry Events</span>
+                <div class="stat-val" id="statInteractions">--</div>
+                <div class="stat-sub">Micro-actions logged</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Admissions Leads</span>
+                <div class="stat-val" id="statLeads" style="color:var(--success);">--</div>
+                <div class="stat-sub">High-intent inquiries</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Rage Click Sessions</span>
+                <div class="stat-val" id="statRage" style="color:var(--danger);">--</div>
+                <div class="stat-sub">UI friction detected</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Dead Clicks</span>
+                <div class="stat-val" id="statDead" style="color:var(--warning);">--</div>
+                <div class="stat-sub">Clicks on unlinked items</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Device Split</span>
+                <div class="stat-val" id="statMobileRatio">--</div>
+                <div class="stat-sub" id="statDeviceBreakdown">Mobile vs Desktop</div>
+            </div>
+        </div>
+
+        <!-- VIEW 1: Clarity Friction & UX -->
+        <div id="view-clarity">
+            <div class="clarity-grid">
+                <!-- Clicked Outgoing Links -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="width:16px;height:16px;color:#38bdf8;">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                                </svg> Clicked Outgoing Links</div>
+                            <div class="card-sub">Exact destination URLs clicked by visitors</div>
+                        </div>
+                    </div>
+                    <div id="clickedLinksList" class="journey-list" style="max-height:220px; overflow-y:auto;">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading clicked links...</div>
+                    </div>
+                </div>
+
+                <!-- Clicked Action Buttons -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="width:16px;height:16px;color:#fbbf24;">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <circle cx="12" cy="12" r="4" />
+                                </svg> Clicked Buttons & Chips</div>
+                            <div class="card-sub">Button clicks inside Chatbot vs Webpage</div>
+                        </div>
+                    </div>
+                    <div id="clickedButtonsList" class="journey-list" style="max-height:220px; overflow-y:auto;">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading clicked buttons...</div>
+                    </div>
+                </div>
+
+                <!-- Page Redirection Pathways -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="width:16px;height:16px;color:#34d399;">
+                                    <path d="M17 1l4 4-4 4" />
+                                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                                    <path d="M7 23l-4-4 4-4" />
+                                    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                                </svg> Page Redirection Flow</div>
+                            <div class="card-sub">Where visitor went after bot & CTA actions</div>
+                        </div>
+                    </div>
+                    <div id="redirectsList" class="journey-list" style="max-height:220px; overflow-y:auto;">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading redirections...</div>
+                    </div>
+                </div>
+
+                <!-- Rage Clicks Hotspots -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title" style="color:var(--danger);"><svg viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg> Rage Click Hotspots</div>
+                            <div class="card-sub">Elements clicked 3+ times within 800ms (High friction)</div>
+                        </div>
+                    </div>
+                    <div id="rageHotspotList" class="journey-list">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading rage hotspots...</div>
+                    </div>
+                </div>
+
+                <!-- Top Copied Text -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="width:16px;height:16px;color:#10b981;">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                </svg> High-Value Copied Text</div>
+                            <div class="card-sub">What visitors copy from chatbot answers (Cutoffs, phones, fees)</div>
+                        </div>
+                    </div>
+                    <div id="copiedList" class="journey-list">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading copied texts...</div>
+                    </div>
+                </div>
+
+                <!-- Visitor Sentiment -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">User Sentiment & Frustration Meter</div>
+                            <div class="card-sub">Calculated satisfaction based on friction and intent</div>
+                        </div>
+                    </div>
+                    <div style="height:210px;">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Device Platform Breakdown -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Device & Operating Systems</div>
+                            <div class="card-sub">Platform breakdown (Windows / macOS / iOS / Android)</div>
+                        </div>
+                    </div>
+                    <div style="height:210px;">
+                        <canvas id="deviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: Acquisition & Geos -->
+        <div id="view-acquisition" style="display:none;">
+            <div class="clarity-grid">
+                <!-- Entry vs Exit Pages -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="width:16px;height:16px;color:#10b981;">
+                                    <path d="M15 3h6v6" />
+                                    <path d="M10 14L21 3" />
+                                </svg> Top Entry Pages</div>
+                            <div class="card-sub">Landing URLs where users first arrived</div>
+                        </div>
+                    </div>
+                    <div class="journey-list" id="entryPagesList">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading entry pages...</div>
+                    </div>
+                </div>
+
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="width:16px;height:16px;color:#ef4444;">
+                                    <path d="M9 21H3v-6" />
+                                    <path d="M14 10L3 21" />
+                                </svg> Top Exit / Drop-off Pages</div>
+                            <div class="card-sub">Last page viewed before visitor closed or left</div>
+                        </div>
+                    </div>
+                    <div class="journey-list" id="exitPagesList">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading exit pages...</div>
+                    </div>
+                </div>
+
+                <!-- Traffic Channels -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Traffic Channels & Referrers</div>
+                            <div class="card-sub">Where visitors came from (Search, Direct, Social)</div>
+                        </div>
+                    </div>
+                    <div style="height:220px;">
+                        <canvas id="referrerChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Geographic Radar -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Geographic Locations (IP-Enriched)</div>
+                            <div class="card-sub">Top visitor cities & countries</div>
+                        </div>
+                    </div>
+                    <div class="journey-list" id="geoList" style="max-height:220px; overflow-y:auto;">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading geo telemetry...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: Chatbot AI Topics & Unanswered Queue -->
+        <div id="view-intelligence" style="display:none;">
+            <div class="clarity-grid">
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Top Intent & Topic Distribution</div>
+                            <div class="card-sub">Most frequently asked inquiries (Placements, Cutoffs, Fees)</div>
+                        </div>
+                    </div>
+                    <div style="height:240px;">
+                        <canvas id="topicChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title" style="color:var(--warning);">Unanswered Questions Queue</div>
+                            <div class="card-sub">Queries bot could not match · Action needed</div>
+                        </div>
+                    </div>
+                    <div class="journey-list" id="unansweredList" style="max-height:240px; overflow-y:auto;">
+                        <div style="color:var(--text-dim); font-size:12px;">No unanswered questions. Bot is handling
+                            queries accurately!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: Session Explorer (Table with Playback Drawer) -->
+        <div id="view-sessions" style="display:none;">
+            <div class="card col-12">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Visitor Session Recordings</div>
+                        <div class="card-sub">Inspect individual visitor sessions with full journey breadcrumbs & chat
+                            playback</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="sessionSearchInput" placeholder="Search city or session..."
+                            oninput="handleSearchSessions(this.value)"
+                            style="padding:6px 12px; border-radius:8px; background:rgba(15,23,42,0.6); border:1px solid var(--border); color:#fff; font-size:12px; outline:none;">
+                        <button class="btn btn-indigo" onclick="filterSessions('rage')">⚡ Rage Clicks</button>
+                        <button class="btn" onclick="filterSessions('leads')">🎯 Leads</button>
+                        <button class="btn" onclick="filterSessions('mobile')">📱 Mobile</button>
+                        <button class="btn" onclick="filterSessions('all')">All</button>
+                        <a href="/print-report.html" target="_blank" class="btn"
+                            style="background:rgba(220,38,38,0.2); border-color:rgba(220,38,38,0.4); color:#fca5a5;">🖨️
+                            Daily PDF Report</a>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Session ID</th>
+                                <th>Visitor & Location</th>
+                                <th>Device / Browser</th>
+                                <th>User Query Given</th>
+                                <th>Buttons & Links</th>
+                                <th>Navigation Route</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionsTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align:center; color:var(--text-dim);">Loading session
+                                    explorer...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 5: Leads CRM -->
+        <div id="view-leads" style="display:none;">
+            <div class="card col-12">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Captured Admissions Leads (CRM)</div>
+                        <div class="card-sub">Candidate inquiries with attribution, qualification score, and status
+                            pipeline</div>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Candidate Name</th>
+                                <th>Contact (Phone / Email)</th>
+                                <th>City / Region</th>
+                                <th>Referrer Source</th>
+                                <th>Entry Page</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leadsTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align:center; color:var(--text-dim);">Loading captured
+                                    leads...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Microsoft Clarity Replay Slide-Out Drawer -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer(event)">
+        <div class="replay-drawer" id="replayDrawer">
+            <div class="drawer-header">
+                <div>
+                    <h3 style="font-size:16px; font-weight:800;" id="drawerSessionId">Session Playback</h3>
+                    <p style="font-size:11.5px; color:var(--text-dim);" id="drawerSessionMeta">Device & Geo info</p>
+                </div>
+                <button class="btn" style="padding:6px 10px;" onclick="closeDrawerForce()">✕ Close</button>
+            </div>
+
+            <!-- Drawer Tabs -->
+            <div class="drawer-tabs">
+                <div class="dtab active" id="dtab-btn-journey" onclick="switchDrawerTab('journey')">🗺️ Clickstream
+                    Journey</div>
+                <div class="dtab" id="dtab-btn-chat" onclick="switchDrawerTab('chat')">💬 Chat Replay</div>
+                <div class="dtab" id="dtab-btn-timeline" onclick="switchDrawerTab('timeline')">⏱ Event Stream</div>
+                <div class="dtab" id="dtab-btn-tech" onclick="switchDrawerTab('tech')">💻 Client Blueprint</div>
+            </div>
+
+            <div class="drawer-body">
+                <!-- Tab 1: Granular Clickstream Journey & Redirection Flow -->
+                <div id="dtab-journey">
+                    <div class="journey-flow" id="drawerJourneyFlow">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading clickstream journey flow...</div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Visual Chat Replay -->
+                <div id="dtab-chat" style="display:none;">
+                    <div class="chat-replay-window" id="drawerChatWindow">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading dialogue...</div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Granular Timeline -->
+                <div id="dtab-timeline" style="display:none;">
+                    <div class="timeline-container" id="drawerTimeline">
+                        <div style="color:var(--text-dim); font-size:12px;">Loading timeline...</div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Technical Blueprint -->
+                <div id="dtab-tech" style="display:none;">
+                    <div style="background:rgba(30,41,59,0.4); border:1px solid var(--border); border-radius:14px; padding:20px; font-size:12.5px; line-height:1.7;"
+                        id="drawerProfileBox">
+                        Loading client blueprint...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cachedOverview = {};
+        let cachedClarity = {};
+        let cachedSessions = [];
+        let cachedLeads = [];
+        let referrerChartInst = null;
+        let deviceChartInst = null;
+        let sentimentChartInst = null;
+        let topicChartInst = null;
+
+        // Auto-detect API base for standalone or Live Server environments
+        const API_BASE = (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3001'))
+            ? 'http://localhost:3001'
+            : '';
+
+        function apiUrl(path) {
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            return API_BASE + path;
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('login-view').style.display = 'flex';
+                const notice = document.getElementById('backendHostNotice');
+                if (notice) notice.textContent = API_BASE || window.location.origin;
+                return false;
+            }
+            return true;
+        }
+
+        async function handleLogin() {
+            const u = document.getElementById('loginUsername').value;
+            const p = document.getElementById('loginPassword').value;
+            const errEl = document.getElementById('loginError');
+            errEl.style.display = 'none';
+
+            try {
+                const targetEndpoint = apiUrl('/api/auth/login');
+                const res = await fetch(targetEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+
+                let data = null;
+                try {
+                    data = await res.json();
+                } catch (parseErr) {
+                    throw new Error(`Server returned HTTP ${res.status} with non-JSON response. Please ensure the Node server is running on http://localhost:3001`);
+                }
+
+                if (!res.ok || !data.token) {
+                    errEl.style.display = 'block';
+                    errEl.textContent = (data && data.error) ? data.error : ('Login failed with status ' + res.status);
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                document.getElementById('login-view').style.display = 'none';
+                loadAllData();
+            } catch (e) {
+                errEl.style.display = 'block';
+                errEl.textContent = 'Connection error: ' + e.message;
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            window.location.reload();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+
+            document.getElementById('view-clarity').style.display = tab === 'clarity' ? 'block' : 'none';
+            document.getElementById('view-acquisition').style.display = tab === 'acquisition' ? 'block' : 'none';
+            document.getElementById('view-intelligence').style.display = tab === 'intelligence' ? 'block' : 'none';
+            document.getElementById('view-sessions').style.display = tab === 'sessions' ? 'block' : 'none';
+            document.getElementById('view-leads').style.display = tab === 'leads' ? 'block' : 'none';
+
+            if (tab === 'clarity') {
+                document.getElementById('pageHeading').textContent = 'Microsoft Clarity Chatbot Telemetry';
+                document.getElementById('pageSubHeading').textContent = 'Deep friction diagnostics, rage clicks, dead clicks, visitor journeys, and visual dialogue playback';
+            } else if (tab === 'acquisition') {
+                document.getElementById('pageHeading').textContent = 'Visitor Acquisition & Geos';
+                document.getElementById('pageSubHeading').textContent = 'Entry pages, exit drop-offs, traffic channels, and IP geo-location';
+            } else if (tab === 'intelligence') {
+                document.getElementById('pageHeading').textContent = 'Chatbot AI Topics & Knowledge Gap';
+                document.getElementById('pageSubHeading').textContent = 'Inquiry topic distribution and unanswered questions resolver queue';
+            } else if (tab === 'sessions') {
+                document.getElementById('pageHeading').textContent = 'Session Replay Explorer';
+                document.getElementById('pageSubHeading').textContent = 'Inspect exact step-by-step visitor journeys and full speech bubble playback';
+            } else if (tab === 'leads') {
+                document.getElementById('pageHeading').textContent = 'Captured Admissions Leads (CRM)';
+                document.getElementById('pageSubHeading').textContent = 'High-intent visitor inquiries with campaign attribution and pipeline status';
+            }
+        }
+
+        function switchDrawerTab(tab) {
+            document.querySelectorAll('.dtab').forEach(el => el.classList.remove('active'));
+            const targetBtn = document.getElementById('dtab-btn-' + tab) || (typeof event !== 'undefined' && event?.target ? event.target.closest('.dtab') : null);
+            if (targetBtn) targetBtn.classList.add('active');
+
+            document.getElementById('dtab-journey').style.display = tab === 'journey' ? 'block' : 'none';
+            document.getElementById('dtab-chat').style.display = tab === 'chat' ? 'block' : 'none';
+            document.getElementById('dtab-timeline').style.display = tab === 'timeline' ? 'block' : 'none';
+            document.getElementById('dtab-tech').style.display = tab === 'tech' ? 'block' : 'none';
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('token');
+            try {
+                const targetUrl = apiUrl(url);
+                const res = await fetch(targetUrl, {
+                    ...options,
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        ...(options.headers || {})
+                    }
+                });
+                if (res.status === 401 || res.status === 403) {
+                    localStorage.removeItem('token');
+                    document.getElementById('login-view').style.display = 'flex';
+                    return null;
+                }
+                if (!res.ok) {
+                    console.warn(`Request to ${targetUrl} returned HTTP ${res.status}`);
+                    return null;
+                }
+                return await res.json();
+            } catch (e) {
+                console.warn(`fetchWithAuth error for ${url}:`, e.message);
+                return null;
+            }
+        }
+
+        async function loadAllData() {
+            if (!checkAuth()) return;
+
+            // Overview
+            const ov = await fetchWithAuth('/api/dashboard/overview');
+            if (ov) {
+                cachedOverview = ov;
+                document.getElementById('statSessions').textContent = ov.totalSessions || 0;
+                document.getElementById('statInteractions').textContent = ov.totalInteractions || 0;
+                document.getElementById('statLeads').textContent = ov.totalLeads || 0;
+                document.getElementById('statRage').textContent = ov.rageClickSessions || 0;
+                document.getElementById('statDead').textContent = ov.deadClickSessions || 0;
+                document.getElementById('activeVisitorsBadge').textContent = 'Live: ' + (ov.liveNow || 0);
+
+                const totalDevices = (ov.deviceSplit?.mobile || 0) + (ov.deviceSplit?.desktop || 0);
+                const mobPct = totalDevices ? Math.round(((ov.deviceSplit?.mobile || 0) / totalDevices) * 100) : 0;
+                document.getElementById('statMobileRatio').textContent = mobPct + '% Mob';
+                document.getElementById('statDeviceBreakdown').textContent = `${ov.deviceSplit?.mobile || 0} Mobile / ${ov.deviceSplit?.desktop || 0} Desktop`;
+            }
+
+            // Clarity Deep Metrics
+            const clarity = await fetchWithAuth('/api/dashboard/clarity');
+            if (clarity) {
+                cachedClarity = clarity;
+                renderEntryPages(clarity.entryPages || []);
+                renderExitPages(clarity.exitPages || []);
+                renderReferrers(clarity.referrers || []);
+                renderGeos(clarity.cities || []);
+                renderDeviceChart(clarity.devices || {});
+                renderRageHotspots(clarity.rageHotspots || []);
+                renderCopiedList(clarity.copiedItems || []);
+                renderSentimentChart(clarity.sentiments || {});
+                renderTopicChart(clarity.topics || []);
+                renderClickedLinks(clarity.clickedLinks || []);
+                renderClickedButtons(clarity.clickedButtons || []);
+                renderRedirects(clarity.redirects || []);
+            }
+
+            // Sessions Explorer
+            const sessions = await fetchWithAuth('/api/dashboard/sessions?limit=60');
+            if (sessions) {
+                cachedSessions = sessions;
+                renderSessionsTable(sessions);
+            }
+
+            // Unanswered Queries
+            const unanswered = await fetchWithAuth('/api/dashboard/unanswered');
+            if (unanswered) {
+                renderUnansweredList(unanswered);
+            }
+
+            // Leads
+            const leads = await fetchWithAuth('/api/dashboard/leads');
+            if (leads) {
+                cachedLeads = leads;
+                renderLeadsTable(leads);
+            }
+
+            // Supabase Status
+            try {
+                const supaRes = await fetch(apiUrl('/api/supabase/status')).then(r => r.json());
+                const statusEl = document.getElementById('supabaseStatusText');
+                if (statusEl) {
+                    if (supaRes.connected) {
+                        statusEl.textContent = 'Live Connected';
+                        statusEl.style.color = '#10b981';
+                    } else if (supaRes.configured) {
+                        statusEl.textContent = 'Connecting...';
+                        statusEl.style.color = '#f59e0b';
+                    } else {
+                        statusEl.textContent = 'Paste Keys in .env';
+                        statusEl.style.color = '#94a3b8';
+                    }
+                }
+            } catch (e) { }
+        }
+
+        function renderEntryPages(pages) {
+            const el = document.getElementById('entryPagesList');
+            if (!pages.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">No entry page data</div>'; return; }
+            el.innerHTML = pages.map(([p, count]) => `
+                <div class="journey-item">
+                    <span class="journey-path">${p}</span>
+                    <span class="journey-count">${count} visits</span>
+                </div>
+            `).join('');
+        }
+
+        function renderExitPages(pages) {
+            const el = document.getElementById('exitPagesList');
+            if (!pages.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">No exit page data</div>'; return; }
+            el.innerHTML = pages.map(([p, count]) => `
+                <div class="journey-item">
+                    <span class="journey-path">${p}</span>
+                    <span class="exit-count">${count} drop-offs</span>
+                </div>
+            `).join('');
+        }
+
+        function renderReferrers(referrers) {
+            if (!referrers.length) return;
+            if (referrerChartInst) referrerChartInst.destroy();
+            const ctx = document.getElementById('referrerChart').getContext('2d');
+            referrerChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: referrers.map(r => r[0]),
+                    datasets: [{
+                        label: 'Visitors',
+                        data: referrers.map(r => r[1]),
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        function renderGeos(cities) {
+            const el = document.getElementById('geoList');
+            if (!cities.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">No location telemetry</div>'; return; }
+            el.innerHTML = cities.map(([city, count]) => `
+                <div class="journey-item">
+                    <span>📍 <strong>${city}</strong></span>
+                    <span class="tag tag-blue">${count} visits</span>
+                </div>
+            `).join('');
+        }
+
+        function renderDeviceChart(devices) {
+            if (deviceChartInst) deviceChartInst.destroy();
+            const ctx = document.getElementById('deviceChart').getContext('2d');
+            deviceChartInst = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Desktop', 'Mobile', 'Tablet'],
+                    datasets: [{
+                        data: [devices.Desktop || 0, devices.Mobile || 0, devices.Tablet || 0],
+                        backgroundColor: ['#6366f1', '#E31E24', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function renderSentimentChart(s) {
+            if (sentimentChartInst) sentimentChartInst.destroy();
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+            sentimentChartInst = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Satisfied / Converted', 'Neutral', 'Frustrated / Rage'],
+                    datasets: [{
+                        data: [s.Positive || 0, s.Neutral || 0, s.Frustrated || 0],
+                        backgroundColor: ['#10b981', '#6366f1', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function renderTopicChart(topics) {
+            if (!topics.length) return;
+            if (topicChartInst) topicChartInst.destroy();
+            const ctx = document.getElementById('topicChart').getContext('2d');
+            topicChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topics.map(t => t[0].toUpperCase()),
+                    datasets: [{
+                        label: 'Inquiries',
+                        data: topics.map(t => t[1]),
+                        backgroundColor: '#E31E24',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#fff', font: { size: 11, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        function renderRageHotspots(hotspots) {
+            const el = document.getElementById('rageHotspotList');
+            if (!hotspots.length) {
+                el.innerHTML = '<div style="color:var(--text-dim);font-size:12.5px;padding:8px;">✅ Zero rage clicks detected. Visitors experiencing smooth navigation.</div>';
+                return;
+            }
+            el.innerHTML = hotspots.map(([item, count]) => `
+                <div class="journey-item" style="border-left: 3px solid var(--danger);">
+                    <span style="font-weight:600; color:#f8fafc;">⚡ ${item}</span>
+                    <span class="tag tag-red">${count} rage incidents</span>
+                </div>
+            `).join('');
+        }
+
+        function renderCopiedList(items) {
+            const el = document.getElementById('copiedList');
+            if (!items.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">No copy events recorded yet</div>'; return; }
+            el.innerHTML = items.map(([text, count]) => `
+                <div class="journey-item">
+                    <span style="color:#cbd5e1; font-size:12px;">"${text.substring(0, 48)}"</span>
+                    <span class="tag tag-green">${count} copies</span>
+                </div>
+            `).join('');
+        }
+
+        function renderUnansweredList(items) {
+            const el = document.getElementById('unansweredList');
+            if (!items.length) {
+                el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">✅ No unresolved questions in queue!</div>';
+                return;
+            }
+            el.innerHTML = items.map(u => `
+                <div class="journey-item" style="border-left: 3px solid var(--warning);">
+                    <div style="flex-grow:1; margin-right:10px;">
+                        <div style="font-weight:600; color:#fff;">"${u.queryText}"</div>
+                        <div style="font-size:11px; color:var(--text-dim);">${new Date(u.createdAt).toLocaleTimeString()}</div>
+                    </div>
+                    <button class="btn btn-indigo" style="padding:4px 8px; font-size:11px;" onclick="resolveQuestion('${u._id}')">✓ Resolve</button>
+                </div>
+            `).join('');
+        }
+
+        async function resolveQuestion(id) {
+            await fetchWithAuth('/api/dashboard/unanswered/' + id + '/resolve', { method: 'POST' });
+            loadAllData();
+        }
+
+        function renderClickedLinks(links) {
+            const el = document.getElementById('clickedLinksList');
+            if (!links || !links.length) {
+                el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">No clicked links recorded yet</div>';
+                return;
+            }
+            el.innerHTML = links.map(l => {
+                const text = l.text || l[0] || 'Link';
+                const url = l.url || '';
+                const count = l.count || l[1] || 1;
+                const isExt = !!l.isExternal || (url.startsWith('http') && !url.includes('rvce.edu.in'));
+
+                return `
+                    <div class="journey-item">
+                        <div style="flex-grow:1; margin-right:8px; overflow:hidden;">
+                            <div style="font-weight:700; color:#38bdf8; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">🔗 "${text}"</div>
+                            ${url ? `<div style="font-family:monospace; font-size:10.5px; color:var(--text-dim); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">➔ ${url}</div>` : ''}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            ${isExt ? '<span class="tag tag-amber" style="font-size:10px;">External</span>' : '<span class="tag tag-blue" style="font-size:10px;">Internal</span>'}
+                            <span class="journey-count">${count} clicks</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderClickedButtons(buttons) {
+            const el = document.getElementById('clickedButtonsList');
+            if (!buttons || !buttons.length) {
+                el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">No clicked buttons recorded yet</div>';
+                return;
+            }
+            el.innerHTML = buttons.map(b => {
+                const text = b.text || b[0] || 'Button';
+                const loc = b.location || 'Chatbot';
+                const count = b.count || b[1] || 1;
+
+                return `
+                    <div class="journey-item">
+                        <div style="flex-grow:1; margin-right:8px; overflow:hidden;">
+                            <div style="font-weight:700; color:#fbbf24; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">🔘 "${text}"</div>
+                            <div style="font-size:11px; color:var(--text-dim);">Location: <span class="tag tag-amber" style="padding:1px 5px; font-size:10px;">${loc}</span></div>
+                        </div>
+                        <span class="journey-count">${count} clicks</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRedirects(redirects) {
+            const el = document.getElementById('redirectsList');
+            if (!redirects || !redirects.length) {
+                el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">No page redirections recorded yet</div>';
+                return;
+            }
+            el.innerHTML = redirects.map(r => {
+                const from = r.from || (r[0] ? r[0].split(' ➔ ')[0] : '/');
+                const to = r.to || (r[0] ? r[0].split(' ➔ ')[1] : '/');
+                const count = r.count || r[1] || 1;
+
+                return `
+                    <div class="journey-item">
+                        <div style="flex-grow:1; margin-right:8px;">
+                            <div style="display:flex; align-items:center; gap:6px; font-family:monospace; font-size:11.5px;">
+                                <span style="color:#cbd5e1;">${from}</span>
+                                <span style="color:#10b981; font-weight:800;">➔</span>
+                                <span style="color:#34d399; font-weight:700;">${to}</span>
+                            </div>
+                        </div>
+                        <span class="tag tag-green">${count} redirects</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSessionsTable(sessions) {
+            const tbody = document.getElementById('sessionsTableBody');
+            if (!sessions.length) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim);">No sessions found. Try seeding demo data!</td></tr>';
+                return;
+            }
+            tbody.innerHTML = sessions.map(s => {
+                const isRage = s.metrics?.rageClicks > 0;
+                const deviceStr = `${s.device?.type || 'Desktop'} · ${s.device?.browser || 'Chrome'}`;
+                const geoStr = `${s.geo?.city || 'Bengaluru'}, ${s.geo?.countryCode || 'IN'}`;
+                const lastQuery = s.lastQuery || '—';
+                const btnCount = s.buttonsCount || (s.journey ? s.journey.filter(j => j.type === 'button_click').length : 0);
+                const lnkCount = s.linksCount || s.metrics?.linksClicked || (s.journey ? s.journey.filter(j => j.type === 'link_click').length : 0);
+                const route = s.navigationRoute || (s.entryPage ? `${new URL(s.entryPage, 'https://rvce.edu.in').pathname} ➔ ${new URL(s.exitPage || s.entryPage, 'https://rvce.edu.in').pathname}` : '/');
+
+                return `
+                    <tr>
+                        <td style="font-family:monospace; font-weight:700; color:#818cf8;">${s.sessionId.substring(0, 16)}</td>
+                        <td>
+                            <div style="font-weight:600; color:#fff;">${geoStr}</div>
+                            <div style="font-size:10.5px; color:var(--text-dim); font-family:monospace;">${s.geo?.ip || '103.24.12.45'}</div>
+                        </td>
+                        <td><span class="tag tag-blue">${deviceStr}</span></td>
+                        <td>
+                            <div style="max-width:210px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; font-weight:600; color:#fff;" title="${lastQuery}">
+                                💬 "${lastQuery}"
+                            </div>
+                        </td>
+                        <td>
+                            <span class="tag tag-amber" style="font-size:10px;">🔘 ${btnCount} btn</span>
+                            <span class="tag tag-blue" style="font-size:10px; margin-left:3px;">🔗 ${lnkCount} lnk</span>
+                        </td>
+                        <td>
+                            <div style="font-family:monospace; font-size:11px; color:#cbd5e1; max-width:180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${route}">
+                                ${route}
+                            </div>
+                        </td>
+                        <td>
+                            ${isRage ? `<span class="tag tag-red">⚡ ${s.metrics.rageClicks} Rage</span>` : '<span class="tag tag-green">Smooth</span>'}
+                            ${s.isConvertedLead ? '<span class="tag tag-amber" style="margin-left:3px;">Lead</span>' : ''}
+                        </td>
+                        <td>
+                            <button class="btn btn-indigo" style="padding:5px 10px; font-size:11px;" onclick="openReplayDrawer('${s.sessionId}')">▶ Replay Journey</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderLeadsTable(leads) {
+            const tbody = document.getElementById('leadsTableBody');
+            if (!leads.length) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-dim);">No captured leads yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = leads.map(l => {
+                return `
+                    <tr>
+                        <td style="font-weight:700; color:#fff;">${l.name || 'Candidate'}</td>
+                        <td>
+                            <div>📞 ${l.phone || 'N/A'}</div>
+                            <div style="color:var(--text-dim); font-size:11.5px;">✉ ${l.email || 'N/A'}</div>
+                        </td>
+                        <td>${l.geo?.city || 'Bengaluru'}, ${l.geo?.country || 'India'}</td>
+                        <td><span class="tag tag-blue">${l.attribution?.referrer || 'Direct'}</span></td>
+                        <td style="font-family:monospace; font-size:12px;">${l.attribution?.entryPage || '/'}</td>
+                        <td>
+                            <select onchange="updateLeadStatus('${l._id}', this.value)" style="background:rgba(15,23,42,0.8); color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px; font-size:11px;">
+                                <option value="New" ${l.status === 'New' ? 'selected' : ''}>New</option>
+                                <option value="Contacted" ${l.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
+                                <option value="Qualified" ${l.status === 'Qualified' ? 'selected' : ''}>Qualified</option>
+                                <option value="Enrolled" ${l.status === 'Enrolled' ? 'selected' : ''}>Enrolled</option>
+                            </select>
+                        </td>
+                        <td>
+                            <span class="tag tag-green">Score: ${l.score || 85}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function updateLeadStatus(id, newStatus) {
+            const token = localStorage.getItem('token');
+            await fetch(apiUrl('/api/dashboard/leads/' + id + '/status'), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ status: newStatus })
+            });
+        }
+
+        // --- Visual Clickstream Journey Flow Renderer (Clarity-Grade Detail) ---
+        function renderJourneyFlow(journey) {
+            const container = document.getElementById('drawerJourneyFlow');
+            if (!journey || journey.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-dim); padding:20px; text-align:center;">No clickstream steps recorded for this session.</div>';
+                return;
+            }
+
+            container.innerHTML = journey.map(item => {
+                let badgeClass = 'badge-land';
+                let badgeIcon = '🚀';
+                let badgeLabel = 'Landed on Page';
+
+                if (item.type === 'bot_open') {
+                    badgeClass = 'badge-bot';
+                    badgeIcon = '🤖';
+                    badgeLabel = 'Opened Chatbot Widget';
+                } else if (item.type === 'query' || item.type === 'message') {
+                    badgeClass = 'badge-query';
+                    badgeIcon = '💬';
+                    badgeLabel = 'User Query Given';
+                } else if (item.type === 'bot_reply') {
+                    badgeClass = 'badge-bot';
+                    badgeIcon = '💡';
+                    badgeLabel = 'Bot Response';
+                } else if (item.type === 'button_click') {
+                    badgeClass = 'badge-btn';
+                    badgeIcon = '🔘';
+                    badgeLabel = `Clicked Button [${item.location || 'Chatbot'}]`;
+                } else if (item.type === 'link_click') {
+                    badgeClass = 'badge-link';
+                    badgeIcon = '🔗';
+                    badgeLabel = item.isExternal ? 'Clicked External Outgoing Link' : 'Clicked Internal Link';
+                } else if (item.type === 'page_redirect') {
+                    badgeClass = 'badge-redirect';
+                    badgeIcon = '🔄';
+                    badgeLabel = 'Page Redirection / Navigation';
+                } else if (item.type === 'rage_click') {
+                    badgeClass = 'badge-rage';
+                    badgeIcon = '⚡';
+                    badgeLabel = 'Rage Click (High Friction)';
+                } else if (item.type === 'dead_click') {
+                    badgeClass = 'badge-rage';
+                    badgeIcon = '⚠️';
+                    badgeLabel = 'Dead Click';
+                } else if (item.type === 'lead_submit') {
+                    badgeClass = 'badge-lead';
+                    badgeIcon = '📝';
+                    badgeLabel = 'Application Inquiry Submitted';
+                } else if (item.type === 'exit') {
+                    badgeClass = 'badge-exit';
+                    badgeIcon = '🏁';
+                    badgeLabel = 'Session Drop-off / Exited Site';
+                }
+
+                let customBody = '';
+                if (item.type === 'query' || item.type === 'message') {
+                    const queryClean = item.elementText || item.title.replace(/^Asked: "/, '').replace(/"$/, '');
+                    let botAnswerClean = item.botReply || '';
+                    if (!botAnswerClean && item.detail && !item.detail.toLowerCase().includes('user asked') && item.detail !== queryClean) {
+                        botAnswerClean = item.detail.startsWith('Bot: ') ? item.detail.replace(/^Bot: "/, '').replace(/"$/, '') : item.detail;
+                    }
+                    customBody = `
+                        <div class="journey-query-box">
+                            <span style="font-size:11px; color:#ff6b6b; display:block; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Visitor Asked:</span>
+                            "${queryClean}"
+                        </div>
+                        ${botAnswerClean ? `
+                            <div class="journey-reply-box">
+                                <span style="font-size:11px; color:#818cf8; display:block; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">RVCE Assistant Replied:</span>
+                                ${botAnswerClean}
+                            </div>
+                        ` : ''}
+                    `;
+                } else if (item.type === 'bot_reply') {
+                    const replyClean = item.botReply || (item.detail?.startsWith('Bot: ') ? item.detail.replace(/^Bot: "/, '').replace(/"$/, '') : item.detail) || item.title;
+                    customBody = `
+                        <div class="journey-reply-box" style="margin-top:6px;">
+                            <span style="font-size:11px; color:#818cf8; display:block; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">RVCE Assistant Replied:</span>
+                            ${replyClean}
+                        </div>
+                    `;
+                } else if (item.type === 'button_click') {
+                    const btnClean = item.elementText || item.title.replace(/^Clicked Button: "/, '').replace(/"$/, '');
+                    customBody = `
+                        <div style="margin-top:6px;">
+                            <div class="journey-button-pill">
+                                <span>🔘 Button: <strong>"${btnClean}"</strong></span>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">
+                                Location: <span class="tag tag-amber" style="padding:2px 6px;">${item.location || 'Chatbot'}</span> · Triggered on: <span style="font-family:monospace; color:#cbd5e1;">${item.url || '/'}</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type === 'link_click') {
+                    const linkTextClean = item.elementText || item.title.replace(/^Clicked Link: "/, '').replace(/"$/, '');
+                    const targetUrl = item.targetUrl || item.url || '';
+                    customBody = `
+                        <div style="margin-top:6px;">
+                            <div style="font-size:12px; color:var(--text-dim); margin-bottom:4px;">Anchor Text:</div>
+                            <a href="${targetUrl}" target="_blank" class="journey-link-pill">
+                                <span>🔗 "${linkTextClean}"</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            </a>
+                            <div style="background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-family:monospace; font-size:11px; color:#38bdf8; margin-top:6px; word-break:break-all;">
+                                Destination ➔ ${targetUrl}
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type === 'page_redirect') {
+                    const fromP = item.detail?.includes(' ➔ ') ? item.detail.split(' ➔ ')[0].replace(/^From /, '') : (item.url || '/');
+                    const toP = item.targetUrl || (item.detail?.includes(' ➔ ') ? item.detail.split(' ➔ ')[1] : item.url);
+                    customBody = `
+                        <div class="journey-redir-box">
+                            <span style="font-family:monospace; color:#cbd5e1;">${fromP}</span>
+                            <span style="font-size:16px;">➔</span>
+                            <span style="font-family:monospace; color:#34d399; font-weight:700;">${toP}</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-dim); margin-top:2px;">Where user navigated after interaction</div>
+                    `;
+                } else if (item.type === 'lead_submit') {
+                    customBody = `
+                        <div style="background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:10px; padding:12px; margin-top:6px;">
+                            <strong style="color:#facc15; font-size:13px; display:block; margin-bottom:4px;">🎯 Captured Admissions Candidate</strong>
+                            <div style="font-size:12px; color:#cbd5e1;">${item.detail || 'Candidate submitted inquiry details in chatbot.'}</div>
+                        </div>
+                    `;
+                } else {
+                    customBody = `
+                        <div style="font-size:12.5px; color:#cbd5e1; margin-top:4px;">${item.detail || item.title}</div>
+                        ${item.url ? `<div style="font-size:11px; color:var(--text-dim); margin-top:4px; font-family:monospace;">Page: ${item.url}</div>` : ''}
+                    `;
+                }
+
+                return `
+                    <div class="journey-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="journey-step-badge ${badgeClass}">${badgeIcon} Step ${item.step} · ${badgeLabel}</span>
+                            <span style="font-family:monospace; font-size:11px; color:var(--text-dim);">⏱ ${item.timeOffset || '+00:00'}</span>
+                        </div>
+                        ${customBody}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- Replay Drawer Logic (Clickstream Map + Chat Playback + Stream) ---
+        async function openReplayDrawer(sessionId) {
+            const overlay = document.getElementById('drawerOverlay');
+            overlay.classList.add('open');
+
+            document.getElementById('drawerSessionId').textContent = 'Replay: ' + sessionId;
+            document.getElementById('drawerSessionMeta').textContent = 'Loading playback...';
+            document.getElementById('drawerJourneyFlow').innerHTML = '<div style="color:var(--text-dim); padding:20px; text-align:center;">Reconstructing visual clickstream journey...</div>';
+            document.getElementById('drawerChatWindow').innerHTML = 'Reconstructing conversation dialogue...';
+            document.getElementById('drawerTimeline').innerHTML = 'Reconstructing event stream...';
+
+            // Set Tab 1 (Journey) active by default
+            switchDrawerTab('journey');
+
+            const res = await fetchWithAuth('/api/dashboard/session/' + sessionId);
+            if (!res || !res.session) {
+                document.getElementById('drawerJourneyFlow').innerHTML = '<div style="color:var(--danger); padding:20px;">Failed to load session journey.</div>';
+                return;
+            }
+
+            const { session, timeline, journey, dialogue } = res;
+            document.getElementById('drawerSessionMeta').textContent = `${session.device?.type || 'Desktop'} · ${session.device?.os || ''} · ${session.geo?.city || 'Bengaluru'}, ${session.geo?.country || 'India'}`;
+
+            // Tab 1: Render Visual Clickstream Journey Map
+            const journeyToRender = (journey && journey.length > 0) ? journey : [
+                {
+                    step: 1,
+                    type: 'page_land',
+                    title: `Landed on ${session.entryPage || '/'}`,
+                    detail: `Visitor started session from ${session.referrer || 'Direct'}`,
+                    timeOffset: '+00:00'
+                },
+                {
+                    step: 2,
+                    type: 'bot_open',
+                    title: 'Opened RVCE Chatbot Widget',
+                    detail: 'Chat widget launched by visitor',
+                    timeOffset: '+00:02'
+                }
+            ];
+            renderJourneyFlow(journeyToRender);
+
+            // Tab 2: Render Visual Chat Dialogue
+            const chatWindow = document.getElementById('drawerChatWindow');
+            if (dialogue && dialogue.length > 0) {
+                chatWindow.innerHTML = dialogue.map(msg => `
+                    <div class="chat-bubble bubble-${msg.sender}">
+                        <strong>${msg.sender === 'user' ? 'Visitor' : 'RVCE Assistant'}:</strong>
+                        <div style="margin-top:3px;">${msg.text}</div>
+                        <div class="bubble-meta">${new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${msg.intent || 'dialogue'}</div>
+                    </div>
+                `).join('');
+            } else {
+                chatWindow.innerHTML = '<div style="color:var(--text-dim); text-align:center; padding:20px;">No conversational chat messages were exchanged in this session. (Visitor browsed website pages).</div>';
+            }
+
+            // Tab 3: Render Granular Timeline
+            const timelineEl = document.getElementById('drawerTimeline');
+            if (timeline && timeline.length > 0) {
+                timelineEl.innerHTML = timeline.map(item => {
+                    const isRage = item.eventType === 'rage_click';
+                    const isMsg = item.eventType === 'message';
+                    let dotClass = 'step-dot';
+                    if (isRage) dotClass += ' rage';
+                    else if (isMsg) dotClass += ' message';
+
+                    return `
+                        <div class="timeline-step">
+                            <div class="${dotClass}"></div>
+                            <div class="step-time">⏱ ${item.formattedOffset} · ${item.eventType.toUpperCase()}</div>
+                            <div class="step-content">
+                                <div class="step-title">${item.interactionId || item.eventType}</div>
+                                <div class="step-desc">${item.queryText || item.element?.text || item.buttonText || item.linkText || 'Triggered'}</div>
+                                ${item.pageUrl ? `<div style="font-size:10.5px; color:var(--text-dim); margin-top:3px; font-family:monospace;">${item.pageUrl}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                timelineEl.innerHTML = '<div style="color:var(--text-dim);">No granular timeline events logged.</div>';
+            }
+
+            // Tab 3: Render Technical Blueprint
+            document.getElementById('drawerProfileBox').innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div><strong>📍 Exact Location:</strong> ${session.geo?.city}, ${session.geo?.region}, ${session.geo?.country}</div>
+                    <div><strong>🌐 IP Address:</strong> ${session.geo?.ip || '103.24.12.45'}</div>
+                    <div><strong>🏢 ISP / Network:</strong> ${session.geo?.isp || 'ACT Fibernet / Campus WiFi'}</div>
+                    <div><strong>🔗 Referrer Channel:</strong> ${session.referrer || 'Direct'}</div>
+                    <div><strong>💻 Operating System:</strong> ${session.device?.os} ${session.device?.osVersion || ''}</div>
+                    <div><strong>🌐 Web Browser:</strong> ${session.device?.browser} ${session.device?.browserVersion || ''}</div>
+                    <div><strong>📺 Screen Resolution:</strong> ${session.device?.screen} (Viewport: ${session.device?.viewport})</div>
+                    <div><strong>⚡ Frustration Score:</strong> ${session.metrics?.frustrationScore || 0} / 100</div>
+                    <div style="grid-column:span 2;"><strong>🚀 Entry URL:</strong> <span style="font-family:monospace; color:#cbd5e1;">${session.entryPage || '/'}</span></div>
+                    <div style="grid-column:span 2;"><strong>🏁 Exit URL:</strong> <span style="font-family:monospace; color:#ef4444;">${session.exitPage || session.entryPage || '/'}</span></div>
+                </div>
+            `;
+        }
+
+        function closeDrawer(e) {
+            if (e.target.id === 'drawerOverlay') {
+                document.getElementById('drawerOverlay').classList.remove('open');
+            }
+        }
+        function closeDrawerForce() {
+            document.getElementById('drawerOverlay').classList.remove('open');
+        }
+
+        async function seedDemoData() {
+            if (confirm("Seed 30 realistic Microsoft Clarity-grade visitor journeys, rage clicks, and leads?")) {
+                const res = await fetch(apiUrl('/api/demo/seed'), { method: 'POST' });
+                const d = await res.json();
+                alert(d.message || 'Seeded successfully!');
+                loadAllData();
+            }
+        }
+
+        function exportData() {
+            if (!cachedSessions.length) { alert('No data to export!'); return; }
+            const rows = cachedSessions.map(s => ({
+                Session_ID: s.sessionId,
+                City: s.geo?.city || '',
+                Country: s.geo?.country || '',
+                Device: s.device?.type || '',
+                OS: s.device?.os || '',
+                Browser: s.device?.browser || '',
+                Entry_Page: s.entryPage || '',
+                Exit_Page: s.exitPage || '',
+                Referrer: s.referrer || '',
+                Rage_Clicks: s.metrics?.rageClicks || 0,
+                Dead_Clicks: s.metrics?.deadClicks || 0,
+                Frustration_Score: s.metrics?.frustrationScore || 0,
+                Is_Lead: s.isConvertedLead ? 'Yes' : 'No'
+            }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "RVCE Clarity Telemetry");
+            XLSX.writeFile(wb, `RVCE_Clarity_Telemetry_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        async function filterSessions(mode) {
+            let url = '/api/dashboard/sessions?limit=60';
+            if (mode === 'rage') url += '&filter=rage';
+            else if (mode === 'leads') url += '&filter=leads';
+            else if (mode === 'mobile') url += '&filter=mobile';
+            else if (mode === 'desktop') url += '&filter=desktop';
+
+            const sessions = await fetchWithAuth(url);
+            if (sessions) renderSessionsTable(sessions);
+        }
+
+        async function handleSearchSessions(query) {
+            if (!query.trim()) {
+                renderSessionsTable(cachedSessions);
+                return;
+            }
+            const filtered = await fetchWithAuth('/api/dashboard/sessions?search=' + encodeURIComponent(query));
+            if (filtered) renderSessionsTable(filtered);
+        }
+
+        function openIntegrationModal() {
+            const host = API_BASE || window.location.origin;
+            const wpEl = document.getElementById('copyWpUrl');
+            const scriptEl = document.getElementById('copyScriptTag');
+            if (wpEl) wpEl.textContent = host;
+            if (scriptEl) {
+                scriptEl.textContent = `<script>\n  window.RVCE_TELEMETRY_URL = "${host}";\n</script>\n
+    <script src="${host}/clarity-telemetry.js"></script>`;
+    }
+    document.getElementById('integrationModal').style.display = 'flex';
+    }
+
+    // Auto-refresh every 30s
+    setInterval(loadAllData, 30000);
+    window.onload = loadAllData;
+    </script>
+
+    <!-- Chatbot Integration & Link Modal -->
+    <div id="integrationModal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
+        <div
+            style="background:#0f172a; border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:32px; max-width:680px; width:92%; max-height:85vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div
+                        style="width:36px; height:36px; background:#E31E24; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:#fff;">
+                        RV</div>
+                    <div>
+                        <h2 style="font-size:18px; font-weight:800;">Link Chatbot with RVCE Command Center</h2>
+                        <p style="font-size:12px; color:var(--text-dim);">How to send live visitor telemetry, chat
+                            queries, and leads from your website</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('integrationModal').style.display='none'"
+                    style="background:transparent; border:none; color:var(--text-dim); font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:18px; font-size:13px;">
+                <!-- Option 1: WordPress Plugin -->
+                <div
+                    style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px;">
+                    <div
+                        style="font-weight:700; color:#60a5fa; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                        <span>Option 1: WordPress Chatbot Plugin Settings</span>
+                    </div>
+                    <p style="color:var(--text-dim); margin-bottom:10px;">In your WordPress Admin ➔ <strong>Chatbot
+                            Settings</strong> ➔ set <strong>Vercel Backend URL</strong> to:</p>
+                    <div
+                        style="background:rgba(0,0,0,0.5); padding:10px 14px; border-radius:8px; font-family:monospace; color:#34d399; display:flex; justify-content:space-between; align-items:center;">
+                        <span id="copyWpUrl">http://localhost:3001</span>
+                        <button
+                            onclick="navigator.clipboard.writeText(document.getElementById('copyWpUrl').textContent); alert('Copied Backend URL to clipboard!');"
+                            class="btn" style="padding:4px 10px; font-size:11px;">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Option 2: Website / HTML Embed -->
+                <div
+                    style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px;">
+                    <div style="font-weight:700; color:#34d399; margin-bottom:6px;">
+                        Option 2: Website Tracking Tag (Clarity & Chatbot Telemetry)
+                    </div>
+                    <p style="color:var(--text-dim); margin-bottom:10px;">Add this script before the closing
+                        <code>&lt;/body&gt;</code> tag on any RVCE webpage:</p>
+                    <pre id="copyScriptTag"
+                        style="background:rgba(0,0,0,0.5); padding:12px; border-radius:8px; font-family:monospace; font-size:11.5px; color:#cbd5e1; overflow-x:auto; margin:0;">&lt;script&gt;
+  window.RVCE_TELEMETRY_URL = "http://localhost:3001";
+&lt;/script&gt;
+&lt;script src="http://localhost:3001/clarity-telemetry.js"&gt;&lt;/script&gt;</pre>
+                    <div style="margin-top:8px; text-align:right;">
+                        <button
+                            onclick="navigator.clipboard.writeText(document.getElementById('copyScriptTag').textContent); alert('Copied Script Tag to clipboard!');"
+                            class="btn" style="padding:4px 10px; font-size:11px; display:inline-flex;">Copy
+                            Script</button>
+                    </div>
+                </div>
+
+                <!-- Option 3: Test Simulator -->
+                <div
+                    style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px;">
+                    <div style="font-weight:700; color:#f59e0b; margin-bottom:6px;">
+                        Option 3: Interactive Live Chatbot Simulator
+                    </div>
+                    <p style="color:var(--text-dim); margin-bottom:12px;">Test the live chatbot simulation right now.
+                        Every dialogue message, link click, rage click, and lead syncs into this dashboard in real time:
+                    </p>
+                    <a href="/test-chat.html" target="_blank" class="btn btn-indigo"
+                        style="display:inline-flex; align-items:center; gap:8px; font-size:13px; padding:10px 16px;">🚀
+                        Open Live Chatbot Simulator</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
