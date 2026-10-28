@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVCE College Website · Live Chatbot Integration Test</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Real WordPress Chatbot CSS -->
+    <link rel="stylesheet" href="/chatbot-plugin-assets/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b0f19;
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Top Command Center Bar */
+        .preview-bar {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 99999;
+        }
+        .preview-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-dash {
+            background: #6366f1;
+            color: #fff;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-dash:hover { background: #4f46e5; }
+        /* Simulated College Website Header & Hero */
+        .college-nav {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+        }
+        .college-logo-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .college-logo {
+            width: 44px;
+            height: 44px;
+            background: #e31e24;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 22px;
+        }
+        .hero {
+            padding: 60px 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 38px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: 16px;
+            color: #94a3b8;
+            max-width: 720px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto 60px;
+            padding: 0 40px;
+        }
+        .portal-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .portal-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        .portal-card h3 {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .portal-card p {
+            font-size: 13.5px;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .card-link {
+            color: #818cf8;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .instructions-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            text-align: left;
+            font-size: 13.5px;
+            line-height: 1.6;
+        }
+        .instructions-box strong { color: #a5b4fc; }
+    </style>
+</head>
+<body>
+
+    <!-- Test Command Center Top Bar -->
+    <div class="preview-bar">
+        <div class="preview-badge">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+            LIVE WP PLUGIN CHATBOT ➔ STREAMING TO DASHBOARD (localhost:3001)
+        </div>
+        <div class="preview-actions">
+            <span style="font-size:12px; color:#94a3b8;">Session ID: <code id="lblSessionId" style="color:#60a5fa; font-family:monospace;">loading...</code></span>
+            <a href="/index.html" target="_blank" class="btn-dash">
+                📊 Open Clarity Dashboard ↗
+            </a>
+        </div>
+    </div>
+
+    <!-- Simulated RVCE College Website Content -->
+    <div class="college-nav">
+        <div class="college-logo-group">
+            <div class="college-logo">RV</div>
+            <div>
+                <div style="font-weight:800; font-size:16px; color:#fff;">RV COLLEGE OF ENGINEERING</div>
+                <div style="font-size:11px; color:#94a3b8; letter-spacing:1px; text-transform:uppercase;">Autonomous Institute · Bengaluru</div>
+            </div>
+        </div>
+        <div style="display:flex; gap:20px; font-size:13.5px; font-weight:600;">
+            <a href="https://rvce.edu.in/admissions" class="card-link">Admissions 2026</a>
+            <a href="https://rvce.edu.in/departments" class="card-link">17 Departments</a>
+            <a href="https://rvce.edu.in/placements" class="card-link">Placements</a>
+            <a href="https://rvce.edu.in/contact" class="card-link">Contact</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1>Autonomous Excellence & Innovation</h1>
+        <p>Testing the production WordPress Chatbot plugin directly with live telemetry. Open the floating chat widget on the bottom right to begin tracking your session in real time!</p>
+        
+        <div class="instructions-box">
+            <strong>🎯 How to test Microsoft Clarity tracking with this plugin:</strong>
+            <ol style="margin-left: 20px; margin-top: 8px;">
+                <li>Click the red floating chat bubble in the bottom-right corner (triggers <code>bot_open</code>).</li>
+                <li>Ask a question (e.g. <em>"What is the KCET cutoff rank for CSE?"</em> or click <em>"💼 Placements 2024"</em>).</li>
+                <li>Try typing a sentence for 5 seconds and deleting it without sending (triggers <code>typing_hesitation</code>).</li>
+                <li>Close the chat widget (triggers <code>bot_close</code> with total dwell duration).</li>
+                <li>Switch to the <a href="/index.html" target="_blank" style="color:#818cf8; text-decoration:underline;">Command Center Dashboard</a> and watch the video replay!</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <div class="portal-card">
+            <h3>🎯 KCET & COMEDK Cutoffs</h3>
+            <p>Explore round-wise opening and closing ranks for all 17 engineering branches including CSE, ISE, ECE, and AI/ML.</p>
+            <a href="https://rvce.edu.in/files/rvce_cutoff_2025.pdf" target="_blank" class="card-link">Download Cutoff PDF ➔</a>
+        </div>
+        <div class="portal-card">
+            <h3>💼 Campus Placements 2025</h3>
+            <p>Over 320 recruiters visited RVCE campus with top package of ₹67 LPA and 94% overall placement rate.</p>
+            <a href="https://rvce.edu.in/placement-statistics" target="_blank" class="card-link">View Placement Report ➔</a>
+        </div>
+        <div class="portal-card">
+            <h3>🏛️ 17 Department Directories</h3>
+            <p>Meet faculty leaders, HODs, research laboratories, and industry partnerships across autonomous curricula.</p>
+            <a href="https://rvce.edu.in/departments" target="_blank" class="card-link">Explore Departments ➔</a>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- REAL WORDPRESS PLUGIN FOOTER HTML MARKUP   -->
+    <!-- ========================================== -->
+    <div id="rvce-chatbot-root" class="rvce-chatbot-widget">
+        <canvas id="particles"></canvas>
+
+        <div class="app-container">
+            <!-- Floating Chat Widget Button -->
+            <button class="chat-fab" id="chatFab" title="Chat with RVCE Assistant" aria-label="Open RVCE chatbot" role="button" aria-expanded="false">
+                <span class="fab-icon open-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </span>
+                <span class="fab-icon close-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </span>
+                <span class="fab-badge" id="fabBadge">1</span>
+            </button>
+
+            <!-- Chat Window Dialog -->
+            <div class="chat-window" id="chatWindow" role="dialog" aria-label="RVCE Chatbot" aria-modal="false">
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="header-left">
+                        <div class="avatar-container">
+                            <div class="avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                                <img src="/chatbot-plugin-assets/logo.png" alt="RVCE Assistant" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none';">
+                            </div>
+                            <div class="avatar-ring"></div>
+                        </div>
+                        <div class="header-info">
+                            <h1>RVCE Assistant</h1>
+                            <div class="status-row">
+                                <span class="status-dot"></span>
+                                <span class="status-text">Online — Ready to help</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="clear-btn" id="clearBtn" title="Clear Chat" aria-label="Clear chat history">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                        <div class="tone-switch pro" id="toneSwitch" title="Toggle tone" role="switch" aria-checked="true" aria-label="Toggle between funny and professional tone" tabindex="0">
+                            <div class="tone-track">
+                                <span class="tone-emoji funny-emoji">😄</span>
+                                <span class="tone-emoji pro-emoji">🎓</span>
+                                <div class="tone-thumb" id="toneThumb"></div>
+                            </div>
+                            <span class="tone-current-label" id="toneLabel">Professional</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages Log -->
+                <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat messages"></div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-bubble">
+                        <div class="typing-av">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        </div>
+                        <div class="typing-dots"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+
+                <!-- Quick Suggestion Chips -->
+                <div class="quick-suggestions" id="quickSuggestions">
+                    <button class="suggestion-chip" data-query="menu">📋 Main Menu</button>
+                    <button class="suggestion-chip" data-query="placements">💼 Placements 2024</button>
+                    <button class="suggestion-chip" data-query="departments">🏛️ 17 Departments</button>
+                    <button class="suggestion-chip" data-query="kcet cutoff">🎯 KCET Cutoffs</button>
+                    <button class="suggestion-chip" data-query="contact">📞 Contact RVCE</button>
+                </div>
+
+                <!-- Input Area -->
+                <div class="chat-input-area" style="position: relative;">
+                    <div id="typeahead" class="typeahead-container hidden"></div>
+                    <div class="input-wrapper">
+                        <button id="emojiBtn" class="emoji-btn" title="Main Menu" aria-label="Open main menu">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
+                        <input type="text" id="userInput" placeholder="Ask about cutoffs, placements, departments..." autocomplete="off" aria-label="Type your message" enterkeyhint="send">
+                        <button id="micBtn" class="mic-btn" title="Voice Input" aria-label="Voice input">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                        </button>
+                        <button id="sendBtn" class="send-btn" title="Send Message" aria-label="Send message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WordPress Localized Settings Simulation -->
+    <script>
+        window.rvceChatbotSettings = {
+            vercelUrl: window.location.origin, // Connects directly to http://localhost:3001
+            restUrl: '',
+            logoUrl: '/chatbot-plugin-assets/logo.png',
+            title: 'RVCE Assistant',
+            statusText: 'Online — Ready to help',
+            welcomeText: 'Hi there! Have questions about RVCE admissions, placements, or courses? Chat with us!'
+        };
+    </script>
+
+    <!-- REAL WORDPRESS SCRIPTS (TELEMETRY + CHATBOT ENGINE) -->
+    <script src="/chatbot-plugin-assets/telemetry.js"></script>
+    <script src="/chatbot-plugin-assets/script.js"></script>
+
+    <script>
+        // Display active session ID in top bar
+        window.addEventListener('load', () => {
+            const sid = localStorage.getItem('rvce_chat_session_id') || 'sess_active';
+            const lbl = document.getElementById('lblSessionId');
+            if (lbl) lbl.textContent = sid;
+        });
+    </script>
+</body>
+</html>

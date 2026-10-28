@@ -32,3 +32,4 @@
 5. **Server Verification**:
    - Restarted Node.js server (`server.js`) on `http://localhost:3001`.
    - Verified that authenticated API endpoints (`/api/dashboard/overview`, `/api/dashboard/sessions`, `/api/demo/seed`) operate with zero errors.
+
