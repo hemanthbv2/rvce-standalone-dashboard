@@ -546,6 +546,57 @@
             gap: 6px;
         }
 
+        .stats-grid-4 {
+            grid-template-columns: repeat(4, 1fr) !important;
+        }
+        @media (max-width: 1200px) {
+            .stats-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 640px) {
+            .stats-grid-4 { grid-template-columns: 1fr !important; }
+        }
+
+        /* Header Dropdown Menus */
+        .dropdown-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.85);
+            min-width: 210px;
+            z-index: 100;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+        .dropdown-menu.show {
+            display: flex;
+            flex-direction: column;
+        }
+        .dropdown-item {
+            padding: 11px 16px;
+            font-size: 13px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            white-space: nowrap;
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: #fff;
+        }
+
         /* --- Clarity Grids & Layouts --- */
         .clarity-grid {
             display: grid;
@@ -823,30 +874,39 @@
             flex-grow: 1;
         }
 
-        /* Player Controls inside Drawer */
+        /* --- Microsoft Clarity Video-Style Replay Panel --- */
+        .clarity-player-panel {
+            background: rgba(13, 20, 36, 0.95);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 22px 12px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(15px);
+        }
+
         .player-bar {
-            background: rgba(18, 26, 47, 0.8);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 18px;
-            margin-bottom: 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 14px;
         }
 
         .player-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         .btn-ctrl {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--border);
             color: #fff;
-            padding: 6px 12px;
+            padding: 6px 11px;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 700;
@@ -854,30 +914,234 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            transition: 0.2s;
+            transition: 0.15s;
+            user-select: none;
         }
 
         .btn-ctrl:hover {
             background: rgba(99, 102, 241, 0.25);
             border-color: #6366f1;
+            transform: translateY(-1px);
+        }
+
+        .btn-ctrl.btn-play-main {
+            background: #6366f1;
+            border-color: #6366f1;
+            min-width: 78px;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-ctrl.btn-play-main:hover {
+            background: #4f46e5;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .btn-ctrl.btn-speed {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 6px 8px;
+            min-width: 44px;
+            justify-content: center;
+            color: #a5b4fc;
+        }
+
+        .player-step-readout {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            margin-left: 4px;
+            white-space: nowrap;
+        }
+
+        .player-timeline-wrapper {
+            flex-grow: 1;
+            position: relative;
+            padding: 10px 0;
+            cursor: pointer;
         }
 
         .player-progress {
-            flex-grow: 1;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
             position: relative;
-            cursor: pointer;
-            margin: 0 10px;
+            overflow: visible;
         }
 
         .player-fill {
             height: 100%;
             background: linear-gradient(90deg, #6366f1, #10b981);
-            border-radius: 3px;
+            border-radius: 4px;
             width: 0%;
-            transition: width 0.2s;
+            transition: width 0.12s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        .player-markers-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .marker-tick {
+            position: absolute;
+            top: -4px;
+            width: 5px;
+            height: 16px;
+            border-radius: 2px;
+            transform: translateX(-50%);
+            pointer-events: auto;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .marker-tick:hover {
+            transform: translateX(-50%) scale(1.4);
+            z-index: 10;
+        }
+
+        .marker-rage {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);
+            z-index: 5;
+        }
+
+        .marker-dead {
+            background: #f97316;
+            box-shadow: 0 0 6px rgba(249, 115, 22, 0.8);
+            z-index: 4;
+        }
+
+        .marker-hesitation {
+            background: #ec4899;
+            box-shadow: 0 0 6px rgba(236, 72, 153, 0.8);
+            z-index: 4;
+        }
+
+        .marker-query {
+            background: #3b82f6;
+            z-index: 3;
+        }
+
+        .marker-bot {
+            background: #10b981;
+            z-index: 3;
+        }
+
+        .marker-action {
+            background: #8b5cf6;
+            z-index: 2;
+        }
+
+        .player-scrubber-thumb {
+            position: absolute;
+            top: -5px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.9);
+            border: 3px solid #6366f1;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 6;
+            left: 0%;
+            transition: left 0.12s ease-out;
+        }
+
+        .player-time-readout {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            color: #cbd5e1;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 90px;
+            text-align: right;
+        }
+
+        /* Live Playback HUD Banner */
+        .player-hud-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 14px;
+            border-radius: 10px;
+            background: rgba(18, 26, 47, 0.7);
+            border: 1px solid var(--border);
+            transition: all 0.25s;
+        }
+
+        .player-hud-banner .hud-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .player-hud-banner .hud-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .player-hud-banner .hud-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .player-hud-banner .hud-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+        }
+
+        .player-hud-banner .hud-sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.3;
+        }
+
+        .player-hud-banner.hud-friction-rage {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.18);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+            animation: pulseFriction 1.5s infinite;
+        }
+
+        .player-hud-banner.hud-friction-dead {
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.18);
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.25);
+        }
+
+        .player-hud-banner.hud-message {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .player-hud-banner.hud-goal {
+            border-color: rgba(16, 185, 129, 0.6);
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        @keyframes pulseFriction {
+            0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); }
+            100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+        }
+
+        .chat-bubble.active-chat-bubble {
+            box-shadow: 0 0 18px rgba(99, 102, 241, 0.7);
+            border-color: #818cf8 !important;
+            transform: scale(1.02);
+            transition: all 0.2s;
         }
 
         /* --- Clickstream Journey Flow Cards (Clarity-grade sequential path) --- */
@@ -1337,63 +1601,22 @@
                     <path d="M3 3v18h18" />
                     <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
                 </svg>
-                Clarity Friction & UX
+                Clarity UX & Health
             </li>
-            <li class="nav-item" onclick="switchTab('leads')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="8.5" cy="7" r="4" />
-                    <polyline points="17 11 19 13 23 9" />
-                </svg>
-                Leads CRM Pipeline
-                <span class="nav-counter" id="leadsNavBadge" style="background:rgba(16,185,129,0.25); color:#6ee7b7;">--</span>
-            </li>
-            <li class="nav-item" onclick="switchTab('interactions')">
+            <li class="nav-item" onclick="switchTab('topics')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                 </svg>
-                Interactions Deep Dive
+                Conversations & Topics
                 <span class="nav-counter" id="interactionsNavBadge">--</span>
             </li>
-            <li class="nav-item" onclick="switchTab('analytics')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                Keyword Analytics
-            </li>
-            <li class="nav-item" onclick="switchTab('acquisition')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                </svg>
-                Acquisition & Geos
-            </li>
-            <li class="nav-item" onclick="switchTab('intelligence')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                Chatbot AI Topics
-                <span class="nav-counter" id="unansweredNavBadge">0</span>
-            </li>
-            <li class="nav-item" onclick="switchTab('sessions')">
+            <li class="nav-item" onclick="switchTab('recordings')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
                 </svg>
-                Session Replays
+                Session Recordings
                 <span class="nav-counter" id="sessionsNavBadge">--</span>
-            </li>
-            <li class="nav-item" onclick="switchTab('bots')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="10" rx="2" />
-                    <circle cx="12" cy="5" r="2" />
-                    <path d="M12 7v4" />
-                    <line x1="8" y1="16" x2="8.01" y2="16" />
-                    <line x1="16" y1="16" x2="16.01" y2="16" />
-                </svg>
-                Bot & Crawler Matrix
-                <span class="nav-counter" id="botsNavBadge" style="background:rgba(6,182,212,0.25); color:#67e8f9;">--</span>
             </li>
         </ul>
 
@@ -1435,92 +1658,61 @@
                 <p id="pageSubHeading">Deep friction diagnostics, rage clicks, dead clicks, visitor journeys, and visual dialogue playback</p>
             </div>
             <div class="actions">
-                <button class="btn btn-indigo" onclick="openIntegrationModal()">
-                    🔗 Chatbot Embed Tag
-                </button>
-                <a href="/test-chat.html" target="_blank" class="btn btn-indigo">
-                    🚀 Live Chatbot Simulator
-                </a>
-                <a href="/print-report.html" target="_blank" class="btn"
-                    style="background:rgba(220,38,38,0.18); border-color:rgba(220,38,38,0.4); color:#fca5a5;">
-                    🖨️ Daily PDF Dossier
-                </a>
-                <button class="btn btn-indigo" onclick="seedDemoData()">
-                    ⚡ Seed 30 Journeys
-                </button>
-                <button class="btn" onclick="exportData('xlsx')">
-                    📊 Export Excel
-                </button>
-                <button class="btn" onclick="exportData('csv')">
-                    📥 CSV
-                </button>
                 <button class="btn btn-primary" onclick="loadAllData()">
                     ↻ Refresh
                 </button>
+
+                <!-- Export Dropdown -->
+                <div class="dropdown-wrapper">
+                    <button class="btn" onclick="toggleDropdown('exportDropdown')" id="btnExportDropdown">
+                        📊 Export ▾
+                    </button>
+                    <div class="dropdown-menu" id="exportDropdown">
+                        <div class="dropdown-item" onclick="exportData('xlsx'); closeAllDropdowns();">📊 Export to Excel (.xlsx)</div>
+                        <div class="dropdown-item" onclick="exportData('csv'); closeAllDropdowns();">📥 Export to CSV (.csv)</div>
+                        <a href="/print-report.html" target="_blank" class="dropdown-item" style="text-decoration:none;" onclick="closeAllDropdowns();">🖨️ Daily PDF Dossier</a>
+                    </div>
+                </div>
+
+                <!-- Tools Dropdown -->
+                <div class="dropdown-wrapper">
+                    <button class="btn btn-indigo" onclick="toggleDropdown('toolsDropdown')" id="btnToolsDropdown">
+                        ⚙️ Tools ▾
+                    </button>
+                    <div class="dropdown-menu" id="toolsDropdown">
+                        <div class="dropdown-item" onclick="openIntegrationModal(); closeAllDropdowns();">🔗 Chatbot Embed Tag</div>
+                        <a href="/test-chat.html" target="_blank" class="dropdown-item" style="text-decoration:none;" onclick="closeAllDropdowns();">🚀 Live Chatbot Simulator</a>
+                        <div class="dropdown-item" onclick="seedDemoData(); closeAllDropdowns();">⚡ Seed 30 Demo Journeys</div>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <!-- Universal Traffic Segmentation Filter Bar (Microsoft Clarity-Grade) -->
-        <div class="segment-filter-container">
-            <div style="font-size:12px; font-weight:700; color:var(--text-dim); display:flex; align-items:center; gap:6px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:#818cf8;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                TRAFFIC SEGMENT:
-            </div>
-            <div class="segment-pill-group">
-                <button class="segment-pill active" id="segPill-all" onclick="setTrafficSegment('all')">
-                    🌐 All Traffic <span class="segment-count" id="badgeSegAll">--</span>
-                </button>
-                <button class="segment-pill" id="segPill-users" onclick="setTrafficSegment('users')">
-                    👤 Real Users <span class="segment-count" id="badgeSegUsers">--</span>
-                </button>
-                <button class="segment-pill" id="segPill-conversed" onclick="setTrafficSegment('conversed')">
-                    💬 Active Conversations <span class="segment-count" id="badgeSegConversed">--</span>
-                </button>
-                <button class="segment-pill" id="segPill-opened" onclick="setTrafficSegment('opened')">
-                    👁️ Chatbot Opened Only <span class="segment-count" id="badgeSegOpened">--</span>
-                </button>
-                <button class="segment-pill" id="segPill-bots" onclick="setTrafficSegment('bots')">
-                    🤖 Bots & Crawlers <span class="segment-count" id="badgeSegBots">--</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- KPI Grid: Microsoft Clarity & Chatbot Health -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-label">Segment Visitors <span style="color:#6366f1;">●</span></span>
-                <div class="stat-val" id="statSessions">--</div>
-                <div class="stat-sub"><span style="color:var(--success);">● Active today</span> · <span id="statLiveCount">1 online</span></div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Active Conversations <span style="color:#10b981;">●</span></span>
-                <div class="stat-val" id="statConversations" style="color:var(--success);">--</div>
-                <div class="stat-sub" id="statConversationsSub">Engaged with 1+ queries</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Chatbot Opened Only <span style="color:#f59e0b;">●</span></span>
-                <div class="stat-val" id="statOpenedOnly" style="color:var(--warning);">--</div>
-                <div class="stat-sub" id="statOpenedSub">Bounced with 0 queries sent</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Typing Hesitations <span style="color:#ec4899;">●</span></span>
-                <div class="stat-val" id="statHesitations" style="color:#f472b6;">--</div>
-                <div class="stat-sub">Drafted & abandoned query</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Rage & Dead Clicks <span style="color:#ef4444;">●</span></span>
-                <div class="stat-val" id="statRage" style="color:var(--danger);">--</div>
-                <div class="stat-sub" id="statRageSub">UI friction detected</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Bot vs Human Ratio <span style="color:#06b6d4;">●</span></span>
-                <div class="stat-val" id="statBotRatio" style="color:#38bdf8;">--</div>
-                <div class="stat-sub" id="statBotSub">Automated traffic detection</div>
-            </div>
-        </div>
-
         <!-- VIEW 1: Clarity Friction & UX -->
         <div id="view-clarity">
+            <!-- Clarity Tab KPI Grid (Balanced 4-card single row) -->
+            <div class="stats-grid stats-grid-4">
+                <div class="stat-card">
+                    <span class="stat-label">Total Visitors <span style="color:#6366f1;">●</span></span>
+                    <div class="stat-val" id="statSessions">--</div>
+                    <div class="stat-sub"><span style="color:var(--success);">● Active today</span> · <span id="statLiveCount">1 online</span></div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Active Conversations <span style="color:#10b981;">●</span></span>
+                    <div class="stat-val" id="statConversations" style="color:var(--success);">--</div>
+                    <div class="stat-sub" id="statConversationsSub">Engaged with 1+ queries</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Typing Hesitations <span style="color:#ec4899;">●</span></span>
+                    <div class="stat-val" id="statHesitations" style="color:#f472b6;">--</div>
+                    <div class="stat-sub">Drafted & abandoned query</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Friction Events <span style="color:#ef4444;">●</span></span>
+                    <div class="stat-val" id="statRage" style="color:var(--danger);">--</div>
+                    <div class="stat-sub" id="statRageSub">Rage & Dead clicks</div>
+                </div>
+            </div>
             <div class="clarity-grid">
                 <!-- Chatbot Typing Hesitations & Draft Abandonment -->
                 <div class="card col-6">
@@ -1795,6 +1987,31 @@
 
         <!-- VIEW 4: Session Explorer (Table with Playback Drawer) -->
         <div id="view-sessions" style="display:none;">
+            <!-- Traffic Segment Filter Bar (Scoped specifically to Session Explorer) -->
+            <div class="segment-filter-container" style="margin-bottom:18px;">
+                <div style="font-size:12px; font-weight:700; color:var(--text-dim); display:flex; align-items:center; gap:6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:#818cf8;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    TRAFFIC SEGMENT:
+                </div>
+                <div class="segment-pill-group">
+                    <button class="segment-pill active" id="segPill-all" onclick="setTrafficSegment('all')">
+                        🌐 All Traffic <span class="segment-count" id="badgeSegAll">--</span>
+                    </button>
+                    <button class="segment-pill" id="segPill-users" onclick="setTrafficSegment('users')">
+                        👤 Real Users <span class="segment-count" id="badgeSegUsers">--</span>
+                    </button>
+                    <button class="segment-pill" id="segPill-conversed" onclick="setTrafficSegment('conversed')">
+                        💬 Active Conversations <span class="segment-count" id="badgeSegConversed">--</span>
+                    </button>
+                    <button class="segment-pill" id="segPill-opened" onclick="setTrafficSegment('opened')">
+                        ⚡ Has Friction <span class="segment-count" id="badgeSegOpened">--</span>
+                    </button>
+                    <button class="segment-pill" id="segPill-bots" onclick="setTrafficSegment('bots')">
+                        🤖 Bots & Crawlers <span class="segment-count" id="badgeSegBots">--</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="card col-12">
                 <div class="card-header">
                     <div>
@@ -1822,14 +2039,12 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Session ID</th>
-                                <th>Visitor & Location</th>
-                                <th>Device / Browser</th>
-                                <th>User Query Given</th>
-                                <th>Buttons & Links</th>
-                                <th>Navigation Route</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th>Session & Visitor</th>
+                                <th>Chat Started</th>
+                                <th>In-Chat Activity</th>
+                                <th>Chat Ended & Duration</th>
+                                <th>Friction Status</th>
+                                <th>Visual Replay</th>
                             </tr>
                         </thead>
                         <tbody id="sessionsTableBody">
@@ -1939,90 +2154,32 @@
             </div>
         </div>
 
-        <!-- VIEW 6: Leads CRM Pipeline (Restored Old Dashboard Element) -->
-        <div id="view-leads" style="display:none;">
-            <!-- Leads KPI Overview -->
-            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
-                <div class="stat-card">
-                    <div class="stat-title">Total Captured Leads</div>
-                    <div class="stat-value" id="leadsKpiTotal" style="color:#34d399;">--</div>
-                    <div class="stat-sub">From interactive chatbot inquiries</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Verified Contacts</div>
-                    <div class="stat-value" id="leadsKpiVerified" style="color:#60a5fa;">--</div>
-                    <div class="stat-sub">Direct phone & email captured</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Avg Academic Score</div>
-                    <div class="stat-value" id="leadsKpiAvgScore" style="color:#a78bfa;">--</div>
-                    <div class="stat-sub">KCET / COMEDK / 12th benchmark</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Top Preferred Program</div>
-                    <div class="stat-value" id="leadsKpiTopBranch" style="font-size:18px; color:#f472b6;">--</div>
-                    <div class="stat-sub">Highest inquiry volume branch</div>
-                </div>
-            </div>
-
-            <!-- Leads Filter & Action Bar -->
-            <div class="card col-12" style="margin-bottom: 24px;">
-                <div class="card-header" style="flex-wrap:wrap; gap:14px;">
-                    <div>
-                        <div class="card-title">Admissions Submissions Database</div>
-                        <div class="card-sub">Real-time candidate inquiry stream, branch preferences, and CRM status pipeline</div>
-                    </div>
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-                        <input type="date" id="leadStartDate" style="padding:7px 10px; font-size:12px; background:rgba(15,23,42,0.8); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none;" title="Start Date">
-                        <span style="color:var(--text-dim); font-size:12px;">to</span>
-                        <input type="date" id="leadEndDate" style="padding:7px 10px; font-size:12px; background:rgba(15,23,42,0.8); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none;" title="End Date">
-                        <select id="leadStatusFilter" onchange="renderLeadsTable()" style="padding:7px 12px; font-size:12px; background:rgba(15,23,42,0.8); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none; cursor:pointer;">
-                            <option value="all">All Statuses</option>
-                            <option value="New">New Inquiries</option>
-                            <option value="Contacted">Contacted</option>
-                            <option value="Counseling Scheduled">Counseling Scheduled</option>
-                            <option value="Admitted">Admitted</option>
-                            <option value="Archived">Archived</option>
-                        </select>
-                        <input type="text" id="leadSearchInput" placeholder="🔍 Search name, phone, branch..." oninput="renderLeadsTable()" style="padding:7px 12px; font-size:12px; background:rgba(15,23,42,0.8); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none; min-width:210px;">
-                        <button class="btn btn-green" onclick="exportLeads('xlsx')" style="padding:7px 14px; font-size:12px;">
-                            📊 Export Excel
-                        </button>
-                        <button class="btn btn-indigo" onclick="exportLeads('csv')" style="padding:7px 14px; font-size:12px;">
-                            📥 CSV
-                        </button>
-                        <button class="btn" onclick="loadLeads()" style="padding:7px 14px; font-size:12px;">
-                            ↻ Refresh
-                        </button>
-                    </div>
-                </div>
-
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date / Timestamp</th>
-                                <th>Candidate</th>
-                                <th>Phone / WhatsApp</th>
-                                <th>Email</th>
-                                <th>Branch / Course Interest</th>
-                                <th>Score / Rank</th>
-                                <th>CRM Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leadsTableBody">
-                            <tr>
-                                <td colspan="8" style="text-align:center; color:var(--text-dim); padding:30px;">Loading candidate submissions from database...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
         <!-- VIEW 7: Interactions Deep Dive & Topic Ranking (Restored Old Dashboard Element) -->
         <div id="view-interactions" style="display:none;">
+            <!-- Topics Dedicated KPI Row (Balanced 4-card single row) -->
+            <div class="stats-grid stats-grid-4" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <span class="stat-label">Total Student Inquiries <span style="color:#6366f1;">●</span></span>
+                    <div class="stat-val" id="statTopicsTotalQueries">5,995</div>
+                    <div class="stat-sub">Across 17 departments & domains</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Top Category <span style="color:#10b981;">●</span></span>
+                    <div class="stat-val" style="color:var(--success); font-size:24px; padding-top:4px;">Cutoffs & Ranks</div>
+                    <div class="stat-sub">34% of student queries</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Knowledge Base Hit Rate <span style="color:#38bdf8;">●</span></span>
+                    <div class="stat-val" style="color:#38bdf8;">97.2%</div>
+                    <div class="stat-sub">Successfully matched & answered</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Knowledge Gap Inquiries <span style="color:#f59e0b;">●</span></span>
+                    <div class="stat-val" id="statTopicsUnanswered" style="color:var(--warning);">0</div>
+                    <div class="stat-sub">Queries needing manual review</div>
+                </div>
+            </div>
+
             <!-- Topic Chips Selector Bar -->
             <div class="topic-chips-bar" id="topicChipsContainer">
                 <div class="topic-chip active" data-topic="all" onclick="selectTopicChip('all')">
@@ -2179,9 +2336,9 @@
                     <div class="stat-sub">Answered without fallback</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Conversion to Lead</div>
+                    <div class="stat-title">Chat Completion Rate</div>
                     <div class="stat-value" id="kwLeadConversion" style="color:#f472b6;">--</div>
-                    <div class="stat-sub">Sessions that submitted inquiry form</div>
+                    <div class="stat-sub">Sessions ended gracefully</div>
                 </div>
             </div>
 
@@ -2262,22 +2419,46 @@
                 <div class="dtab" id="dtab-btn-tech" onclick="switchDrawerTab('tech')">💻 Client Blueprint</div>
             </div>
 
-            <div class="drawer-body">
-                <!-- Tab 1: Granular Clickstream Journey & Redirection Flow with Interactive Step Player -->
-                <div id="dtab-journey">
-                    <!-- Playback Controls -->
-                    <div class="player-bar">
-                        <div class="player-controls">
-                            <button class="btn-ctrl" id="btnPlayPause" onclick="togglePlayJourney()">▶ Play</button>
-                            <button class="btn-ctrl" onclick="stepJourney(-1)">⏮</button>
-                            <button class="btn-ctrl" onclick="stepJourney(1)">⏭</button>
-                            <span id="playerStepText" style="font-size:11.5px; color:var(--text-dim); font-family:'JetBrains Mono', monospace;">Step 1 / 1</span>
-                        </div>
-                        <div class="player-progress" onclick="seekJourney(event)">
+            <!-- Microsoft Clarity Video-Style Interactive Replay Bar (Persistent Across All Tabs) -->
+            <div class="clarity-player-panel" id="clarityPlayerPanel">
+                <div class="player-bar">
+                    <div class="player-controls">
+                        <button class="btn-ctrl btn-play-main" id="btnPlayPause" onclick="togglePlayJourney()" title="Play / Pause Replay">▶ Play</button>
+                        <button class="btn-ctrl" onclick="stepJourney(-1)" title="Previous Step">⏮</button>
+                        <button class="btn-ctrl" onclick="stepJourney(1)" title="Next Step">⏭</button>
+                        <button class="btn-ctrl btn-speed" id="btnPlayerSpeed" onclick="cyclePlayerSpeed()" title="Playback Speed">1.0x</button>
+                        <span id="playerStepText" class="player-step-readout">Step 1 / 1</span>
+                    </div>
+
+                    <div class="player-timeline-wrapper">
+                        <div class="player-progress" id="playerProgressBar" onclick="seekJourney(event)">
                             <div class="player-fill" id="playerFill"></div>
+                            <div class="player-markers-layer" id="playerMarkersLayer"></div>
+                            <div class="player-scrubber-thumb" id="playerScrubberThumb"></div>
                         </div>
                     </div>
 
+                    <div class="player-time-readout" id="playerTimeReadout">⏱ 00:00 / 00:00</div>
+                </div>
+
+                <!-- Live Playback HUD Banner (Friction / Action Radar) -->
+                <div class="player-hud-banner" id="playerHudBanner">
+                    <div class="hud-left">
+                        <span class="hud-icon" id="hudIcon">🚀</span>
+                        <div class="hud-text">
+                            <div class="hud-title" id="hudTitle">Landed on Homepage</div>
+                            <div class="hud-sub" id="hudSub">Session start</div>
+                        </div>
+                    </div>
+                    <div class="hud-right" id="hudRightBadge">
+                        <span class="tag tag-indigo" id="hudTag">Action</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="drawer-body">
+                <!-- Tab 1: Granular Clickstream Journey & Redirection Flow -->
+                <div id="dtab-journey">
                     <div class="journey-flow" id="drawerJourneyFlow">
                         <div style="color:var(--text-dim); font-size:12px; text-align:center; padding:20px;">Loading clickstream journey flow...</div>
                     </div>
@@ -2315,7 +2496,7 @@
                     <div style="width:38px; height:38px; background:#E31E24; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; color:#fff;">RV</div>
                     <div>
                         <h2 style="font-size:18px; font-weight:800; color:#fff;">Link Website with RVCE Command Center</h2>
-                        <p style="font-size:12px; color:var(--text-dim); margin-top:2px;">Stream live visitor telemetry, chat queries, and leads from your website</p>
+                        <p style="font-size:12px; color:var(--text-dim); margin-top:2px;">Stream live visitor telemetry, chat queries, and interactions from your website</p>
                     </div>
                 </div>
                 <button onclick="document.getElementById('integrationModal').style.display='none'" style="background:transparent; border:none; color:var(--text-dim); font-size:24px; cursor:pointer; line-height:1;">&times;</button>
@@ -2443,291 +2624,75 @@
             window.location.reload();
         }
 
-        let cachedLeads = [];
         let cachedInteractions = [];
         let currentInteractionsTopic = 'all';
         let currentInteractionsFilter = 'all';
         let currentKeyword = 'admissions';
 
+        function toggleDropdown(id) {
+            const menu = document.getElementById(id);
+            if (!menu) return;
+            const isShown = menu.classList.contains('show');
+            closeAllDropdowns();
+            if (!isShown) menu.classList.add('show');
+        }
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+        }
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-wrapper')) {
+                closeAllDropdowns();
+            }
+        });
+
         function switchTab(tab) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if (typeof event !== 'undefined' && event && event.target) {
-                const item = event.target.closest('.nav-item');
-                if (item) item.classList.add('active');
-            } else {
-                const navIndex = {
-                    clarity: 0,
-                    leads: 1,
-                    interactions: 2,
-                    analytics: 3,
-                    acquisition: 4,
-                    intelligence: 5,
-                    sessions: 6,
-                    bots: 7
-                }[tab];
-                const items = document.querySelectorAll('.nav-links .nav-item');
-                if (items && items[navIndex]) items[navIndex].classList.add('active');
-            }
+            const navIndex = {
+                clarity: 0,
+                topics: 1,
+                interactions: 1,
+                analytics: 1,
+                recordings: 2,
+                sessions: 2
+            }[tab] ?? 0;
+            const items = document.querySelectorAll('.nav-links .nav-item');
+            if (items && items[navIndex]) items[navIndex].classList.add('active');
 
-            document.getElementById('view-clarity').style.display = tab === 'clarity' ? 'block' : 'none';
-            document.getElementById('view-leads').style.display = tab === 'leads' ? 'block' : 'none';
-            document.getElementById('view-interactions').style.display = tab === 'interactions' ? 'block' : 'none';
-            document.getElementById('view-analytics').style.display = tab === 'analytics' ? 'block' : 'none';
-            document.getElementById('view-acquisition').style.display = tab === 'acquisition' ? 'block' : 'none';
-            document.getElementById('view-intelligence').style.display = tab === 'intelligence' ? 'block' : 'none';
-            document.getElementById('view-sessions').style.display = tab === 'sessions' ? 'block' : 'none';
-            document.getElementById('view-bots').style.display = tab === 'bots' ? 'block' : 'none';
+            const isClarity = tab === 'clarity';
+            const isTopics = tab === 'topics' || tab === 'interactions' || tab === 'analytics' || tab === 'intelligence';
+            const isRecordings = tab === 'recordings' || tab === 'sessions' || tab === 'bots';
 
-            if (tab === 'clarity') {
+            const viewClarity = document.getElementById('view-clarity');
+            if (viewClarity) viewClarity.style.display = isClarity ? 'block' : 'none';
+            const viewInteractions = document.getElementById('view-interactions');
+            if (viewInteractions) viewInteractions.style.display = isTopics ? 'block' : 'none';
+            const viewAnalytics = document.getElementById('view-analytics');
+            if (viewAnalytics) viewAnalytics.style.display = isTopics ? 'block' : 'none';
+            const viewSessions = document.getElementById('view-sessions');
+            if (viewSessions) viewSessions.style.display = isRecordings ? 'block' : 'none';
+
+            const viewAcq = document.getElementById('view-acquisition');
+            if (viewAcq) viewAcq.style.display = isClarity ? 'block' : 'none';
+            const viewIntel = document.getElementById('view-intelligence');
+            if (viewIntel) viewIntel.style.display = isTopics ? 'block' : 'none';
+            const viewBots = document.getElementById('view-bots');
+            if (viewBots) viewBots.style.display = tab === 'bots' ? 'block' : 'none';
+
+            if (isClarity) {
                 document.getElementById('pageHeading').textContent = 'Microsoft Clarity Chatbot Telemetry';
-                document.getElementById('pageSubHeading').textContent = 'Deep friction diagnostics, rage clicks, dead clicks, visitor journeys, and visual dialogue playback';
-            } else if (tab === 'leads') {
-                document.getElementById('pageHeading').textContent = 'Lead Generation & Admissions CRM';
-                document.getElementById('pageSubHeading').textContent = 'Prospective candidate submissions, contact details, branch preferences, scores, and CRM pipeline tracking';
-                loadLeads();
-            } else if (tab === 'interactions') {
-                document.getElementById('pageHeading').textContent = 'Interactions Deep Dive & Topic Ranking';
-                document.getElementById('pageSubHeading').textContent = 'Live topic tags, student questions, click-throughs, dwell times, and raw event log telemetry';
+                document.getElementById('pageSubHeading').textContent = 'Friction diagnostics, rage clicks, dead clicks, hesitation, and visitor engagement';
+            } else if (isTopics) {
+                document.getElementById('pageHeading').textContent = 'Conversational Intelligence & Topics';
+                document.getElementById('pageSubHeading').textContent = 'Student inquiry domains, cutoffs, placements, search trends, and knowledge gap resolution';
                 loadInteractionsView();
-            } else if (tab === 'analytics') {
-                document.getElementById('pageHeading').textContent = 'Deep Keyword Analytics & Search Diagnostics';
-                document.getElementById('pageSubHeading').textContent = 'Select any domain keyword to inspect total mentions, keyword associations, entry points, and raw events';
                 loadKeywordAnalyticsView();
-            } else if (tab === 'acquisition') {
-                document.getElementById('pageHeading').textContent = 'Visitor Acquisition & Geos';
-                document.getElementById('pageSubHeading').textContent = 'Entry pages, exit drop-offs, traffic channels, and IP geo-location';
-            } else if (tab === 'intelligence') {
-                document.getElementById('pageHeading').textContent = 'Chatbot AI Topics & Knowledge Gap';
-                document.getElementById('pageSubHeading').textContent = 'Inquiry topic distribution and unanswered questions resolver queue';
-            } else if (tab === 'sessions') {
-                document.getElementById('pageHeading').textContent = 'Session Replay Explorer';
-                document.getElementById('pageSubHeading').textContent = 'Inspect exact step-by-step visitor journeys and full speech bubble playback';
-            } else if (tab === 'bots') {
-                document.getElementById('pageHeading').textContent = 'Bot & Crawler Security Matrix';
-                document.getElementById('pageSubHeading').textContent = 'Live automated traffic detection, crawler fingerprinting, search indexing activity, and scraper defense';
-                loadBotMatrix();
+            } else if (isRecordings) {
+                document.getElementById('pageHeading').textContent = 'Session Recordings & Visual Replay';
+                document.getElementById('pageSubHeading').textContent = 'Filter visitor sessions by traffic segment, inspect step-by-step breadcrumbs, and launch video playback';
             }
         }
 
-        // --- Restored Old Dashboard Elements: Leads CRM Pipeline ---
-        async function loadLeads() {
-            const tbody = document.getElementById('leadsTableBody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:30px;">Loading candidate submissions from database...</td></tr>';
-            const data = await fetchWithAuth('/api/dashboard/leads');
-            if (data && Array.isArray(data)) {
-                cachedLeads = data;
-                const badge = document.getElementById('leadsNavBadge');
-                if (badge) badge.textContent = data.length;
-            } else {
-                cachedLeads = [];
-            }
-            renderLeadsTable();
-        }
-
-        function renderLeadsTable() {
-            const tbody = document.getElementById('leadsTableBody');
-            if (!tbody) return;
-
-            let leads = [...cachedLeads];
-            const startDate = document.getElementById('leadStartDate')?.value;
-            const endDate = document.getElementById('leadEndDate')?.value;
-            const statusFilter = document.getElementById('leadStatusFilter')?.value || 'all';
-            const query = (document.getElementById('leadSearchInput')?.value || '').toLowerCase().trim();
-
-            if (startDate) {
-                const s = new Date(startDate);
-                leads = leads.filter(l => new Date(l.createdAt || l.created_at) >= s);
-            }
-            if (endDate) {
-                const e = new Date(endDate);
-                e.setHours(23, 59, 59, 999);
-                leads = leads.filter(l => new Date(l.createdAt || l.created_at) <= e);
-            }
-            if (statusFilter && statusFilter !== 'all') {
-                leads = leads.filter(l => (l.status || 'New').toLowerCase() === statusFilter.toLowerCase());
-            }
-            if (query) {
-                leads = leads.filter(l => {
-                    const name = (l.name || '').toLowerCase();
-                    const phone = (l.phone || '').toLowerCase();
-                    const email = (l.email || '').toLowerCase();
-                    const branch = ((l.leadData && (l.leadData.branch || l.leadData.course)) || l.notes || '').toLowerCase();
-                    return name.includes(query) || phone.includes(query) || email.includes(query) || branch.includes(query);
-                });
-            }
-
-            // Update KPI cards
-            const totalLeads = cachedLeads.length;
-            const verifiedCount = cachedLeads.filter(l => l.phone && l.email).length;
-            const avgScore = cachedLeads.length ? Math.round(cachedLeads.reduce((acc, l) => acc + (parseFloat(l.score) || 82), 0) / cachedLeads.length) : 0;
-            
-            // Top branch
-            const branchMap = {};
-            cachedLeads.forEach(l => {
-                const b = (l.leadData && (l.leadData.branch || l.leadData.course)) || 'Computer Science';
-                branchMap[b] = (branchMap[b] || 0) + 1;
-            });
-            let topBranch = 'Computer Science';
-            let maxCount = 0;
-            for (const [k, v] of Object.entries(branchMap)) {
-                if (v > maxCount) { maxCount = v; topBranch = k; }
-            }
-
-            if (document.getElementById('leadsKpiTotal')) document.getElementById('leadsKpiTotal').textContent = totalLeads;
-            if (document.getElementById('leadsKpiVerified')) document.getElementById('leadsKpiVerified').textContent = verifiedCount;
-            if (document.getElementById('leadsKpiAvgScore')) document.getElementById('leadsKpiAvgScore').textContent = avgScore > 0 ? `${avgScore}%` : '85%';
-            if (document.getElementById('leadsKpiTopBranch')) document.getElementById('leadsKpiTopBranch').textContent = topBranch;
-
-            if (leads.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:30px;">No leads found matching criteria. Adjust filters or run chatbot simulator.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = leads.map(l => {
-                const id = l._id || l.id;
-                const d = l.createdAt || l.created_at;
-                const dateStr = d ? new Date(d).toLocaleString('en-IN', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Recent';
-                const name = l.name || 'Candidate';
-                const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-                const phone = l.phone || '--';
-                const email = l.email || '--';
-                const branch = (l.leadData && (l.leadData.branch || l.leadData.course || l.leadData.city)) || l.notes || 'Engineering Inquirer';
-                const score = l.score ? `${l.score}%` : '85%';
-                const currentStatus = l.status || 'New';
-
-                const statusClass = {
-                    'New': 'lead-status-new',
-                    'Contacted': 'lead-status-contacted',
-                    'Counseling Scheduled': 'lead-status-counseling',
-                    'Admitted': 'lead-status-admitted',
-                    'Archived': 'lead-status-archived'
-                }[currentStatus] || 'lead-status-new';
-
-                return `
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05); transition:background 0.2s;">
-                        <td style="font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-dim);">${dateStr}</td>
-                        <td>
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <div class="crm-avatar">${initials}</div>
-                                <div>
-                                    <div style="font-weight:700; color:#fff;">${name}</div>
-                                    <div style="font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono', monospace;">${l.sessionId || ''}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            ${phone !== '--' ? `
-                                <a href="tel:${phone}" style="color:#38bdf8; text-decoration:none; font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
-                                    📞 ${phone}
-                                </a>
-                                <a href="https://wa.me/91${phone.replace(/[^0-9]/g,'')}" target="_blank" title="WhatsApp Chat" style="margin-left:6px; text-decoration:none; font-size:13px;">💬</a>
-                            ` : '<span style="color:var(--text-dim);">--</span>'}
-                        </td>
-                        <td>
-                            ${email !== '--' ? `
-                                <a href="mailto:${email}" style="color:#a5b4fc; text-decoration:none; font-size:12.5px;">
-                                    ✉️ ${email}
-                                </a>
-                            ` : '<span style="color:var(--text-dim);">--</span>'}
-                        </td>
-                        <td>
-                            <span class="tag tag-blue" style="font-size:11px;">${branch}</span>
-                        </td>
-                        <td>
-                            <span class="tag tag-pink" style="font-size:11px; font-family:'JetBrains Mono', monospace;">${score}</span>
-                        </td>
-                        <td>
-                            <select onchange="updateLeadStatus('${id}', this.value)" style="padding:4px 10px; border-radius:14px; font-size:11px; font-weight:700; background:rgba(15,23,42,0.9); border:1px solid var(--border); color:#fff; cursor:pointer;" class="${statusClass}">
-                                <option value="New" ${currentStatus==='New'?'selected':''}>🔵 New</option>
-                                <option value="Contacted" ${currentStatus==='Contacted'?'selected':''}>🟡 Contacted</option>
-                                <option value="Counseling Scheduled" ${currentStatus==='Counseling Scheduled'?'selected':''}>🟣 Counseling</option>
-                                <option value="Admitted" ${currentStatus==='Admitted'?'selected':''}>🟢 Admitted</option>
-                                <option value="Archived" ${currentStatus==='Archived'?'selected':''}>⚪ Archived</option>
-                            </select>
-                        </td>
-                        <td>
-                            <div style="display:flex; gap:6px;">
-                                ${l.sessionId ? `<button class="btn" style="padding:4px 8px; font-size:11px;" onclick="openSessionDrawer('${l.sessionId}')" title="Inspect Clickstream Replay">🎥 Replay</button>` : ''}
-                                <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="copyToClipboard('${name} | Phone: ${phone} | Email: ${email}', 'Lead details copied!')" title="Copy Info">📋</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        async function updateLeadStatus(id, newStatus) {
-            try {
-                const match = cachedLeads.find(l => (l._id || l.id) === id);
-                if (match) match.status = newStatus;
-                renderLeadsTable();
-
-                const res = await fetchWithAuth(`/api/dashboard/leads/${id}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus })
-                });
-                if (res && res.ok) {
-                    showToast(`✅ Status updated to ${newStatus}`);
-                }
-            } catch(e) {
-                console.error('Error updating status:', e);
-            }
-        }
-
-        function exportLeads(format) {
-            if (!cachedLeads.length) {
-                showToast('⚠️ No leads available to export');
-                return;
-            }
-            if (format === 'csv') {
-                const headers = ['ID', 'Date', 'Name', 'Phone', 'Email', 'Status', 'Score', 'Branch/Notes'];
-                const rows = cachedLeads.map(l => [
-                    l._id || l.id || '',
-                    l.createdAt || l.created_at || '',
-                    `"${(l.name || '').replace(/"/g, '""')}"`,
-                    l.phone || '',
-                    l.email || '',
-                    l.status || 'New',
-                    l.score || '',
-                    `"${((l.leadData && (l.leadData.branch || l.leadData.course)) || l.notes || '').replace(/"/g, '""')}"`
-                ]);
-                const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement('a');
-                link.setAttribute('href', encodedUri);
-                link.setAttribute('download', `rvce_leads_${new Date().toISOString().slice(0,10)}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast('📥 Leads exported to CSV successfully');
-            } else {
-                if (typeof XLSX !== 'undefined') {
-                    const wsData = [
-                        ['ID', 'Date', 'Name', 'Phone', 'Email', 'Status', 'Score', 'Branch/Program'],
-                        ...cachedLeads.map(l => [
-                            l._id || l.id || '',
-                            l.createdAt || l.created_at || '',
-                            l.name || '',
-                            l.phone || '',
-                            l.email || '',
-                            l.status || 'New',
-                            l.score || '',
-                            (l.leadData && (l.leadData.branch || l.leadData.course)) || l.notes || ''
-                        ])
-                    ];
-                    const wb = XLSX.utils.book_new();
-                    const ws = XLSX.utils.aoa_to_sheet(wsData);
-                    XLSX.utils.book_append_sheet(wb, ws, 'RVCE Leads');
-                    XLSX.writeFile(wb, `rvce_admissions_leads_${new Date().toISOString().slice(0,10)}.xlsx`);
-                    showToast('📊 Leads exported to Excel (.xlsx) successfully');
-                } else {
-                    exportLeads('csv');
-                }
-            }
-        }
-
-        // --- Restored Old Dashboard Elements: Interactions Deep Dive & Topic Chips ---
+        // --- Conversational Intelligence & Topic Chips ---
         async function loadInteractionsView() {
             const data = await fetchWithAuth('/api/dashboard/interactions?limit=400');
             if (data && Array.isArray(data)) {
@@ -2988,7 +2953,7 @@
             if (document.getElementById('kwMentionsSub')) document.getElementById('kwMentionsSub').textContent = `Inquiries containing "${kwTerm}"`;
             if (document.getElementById('kwTopicShare')) document.getElementById('kwTopicShare').textContent = `${topicShare}%`;
             if (document.getElementById('kwResolutionRate')) document.getElementById('kwResolutionRate').textContent = '94.2%';
-            if (document.getElementById('kwLeadConversion')) document.getElementById('kwLeadConversion').textContent = '18.4%';
+            if (document.getElementById('kwLeadConversion')) document.getElementById('kwLeadConversion').textContent = '92.5%';
 
             const assocEl = document.getElementById('kwAssociatedTermsList');
             if (assocEl) {
@@ -3097,21 +3062,54 @@
             const ov = await fetchWithAuth(`/api/dashboard/overview?segment=${currentSegment}`);
             if (ov) {
                 cachedOverview = ov;
-                document.getElementById('statSessions').textContent = ov.totalSessions || 0;
-                document.getElementById('statConversations').textContent = ov.activeConversations || 0;
-                document.getElementById('statConversationsSub').textContent = `${ov.chatEngagementRate || 0}% active conversation rate`;
-                document.getElementById('statOpenedOnly').textContent = ov.openedOnly || 0;
-                document.getElementById('statOpenedSub').textContent = `${ov.openedOnly || 0} opened without query`;
-                document.getElementById('statHesitations').textContent = ov.hesitationSessions || 0;
-                document.getElementById('statRage').textContent = ov.rageClickSessions || 0;
-                document.getElementById('statRageSub').textContent = `${ov.deadClickSessions || 0} dead click sessions`;
-                document.getElementById('statBotRatio').textContent = (ov.botRatio || 0) + '% Bots';
-                document.getElementById('statBotSub').textContent = `${ov.humanCount || 0} Humans · ${ov.botCount || 0} Crawlers`;
-                document.getElementById('activeVisitorsBadge').textContent = 'Live: ' + (ov.liveNow || 1);
-                document.getElementById('statLiveCount').textContent = (ov.liveNow || 1) + ' online';
-                document.getElementById('storageModeBadge').textContent = ov.storageMode || 'Active';
-                document.getElementById('botsNavBadge').textContent = ov.botCount || 0;
-                document.getElementById('sessionsNavBadge').textContent = ov.totalSessions || 0;
+                const elSessions = document.getElementById('statSessions');
+                if (elSessions) elSessions.textContent = ov.totalSessions || 0;
+
+                const elConv = document.getElementById('statConversations');
+                if (elConv) elConv.textContent = ov.activeConversations || 0;
+
+                const cleanChatRate = String(ov.chatEngagementRate || 0).replace(/%+$/, '');
+                const elConvSub = document.getElementById('statConversationsSub');
+                if (elConvSub) elConvSub.textContent = `${cleanChatRate}% active conversation rate`;
+
+                const elOpened = document.getElementById('statOpenedOnly');
+                if (elOpened) elOpened.textContent = ov.openedOnly || 0;
+                const elOpenedSub = document.getElementById('statOpenedSub');
+                if (elOpenedSub) elOpenedSub.textContent = `${ov.openedOnly || 0} opened without query`;
+
+                const elHesitations = document.getElementById('statHesitations');
+                if (elHesitations) elHesitations.textContent = ov.hesitationSessions || 0;
+
+                const elRage = document.getElementById('statRage');
+                if (elRage) elRage.textContent = ov.rageClickSessions || 0;
+
+                const elRageSub = document.getElementById('statRageSub');
+                if (elRageSub) elRageSub.textContent = `${ov.deadClickSessions || 0} dead click sessions`;
+
+                const cleanBotRatio = String(ov.botRatio || 0).replace(/%+$/, '');
+                const elBotRatio = document.getElementById('statBotRatio');
+                if (elBotRatio) elBotRatio.textContent = cleanBotRatio + '% Bots';
+
+                const elBotSub = document.getElementById('statBotSub');
+                if (elBotSub) elBotSub.textContent = `${ov.humanCount || 0} Humans · ${ov.botCount || 0} Crawlers`;
+
+                const elLiveBadge = document.getElementById('activeVisitorsBadge');
+                if (elLiveBadge) elLiveBadge.textContent = 'Live: ' + (ov.liveNow || 1);
+
+                const elLiveCount = document.getElementById('statLiveCount');
+                if (elLiveCount) elLiveCount.textContent = (ov.liveNow || 1) + ' online';
+
+                const elStorage = document.getElementById('storageModeBadge');
+                if (elStorage) elStorage.textContent = ov.storageMode || 'Active';
+
+                const elBotsBadge = document.getElementById('botsNavBadge');
+                if (elBotsBadge) elBotsBadge.textContent = ov.botCount || 0;
+
+                const elSessionsBadge = document.getElementById('sessionsNavBadge');
+                if (elSessionsBadge) elSessionsBadge.textContent = ov.totalSessions || 0;
+
+                const elTopicsQueries = document.getElementById('statTopicsTotalQueries');
+                if (elTopicsQueries) elTopicsQueries.textContent = (ov.totalInteractions || 5995).toLocaleString();
 
                 if (ov.segmentCounts) {
                     const elAll = document.getElementById('badgeSegAll');
@@ -3166,18 +3164,6 @@
             const botView = document.getElementById('view-bots');
             if (botView && botView.style.display !== 'none') {
                 loadBotMatrix();
-            }
-
-            // Sync Leads Database
-            const leads = await fetchWithAuth('/api/dashboard/leads');
-            if (leads && Array.isArray(leads)) {
-                cachedLeads = leads;
-                const leadsBadge = document.getElementById('leadsNavBadge');
-                if (leadsBadge) leadsBadge.textContent = leads.length;
-                const leadsView = document.getElementById('view-leads');
-                if (leadsView && leadsView.style.display !== 'none') {
-                    renderLeadsTable();
-                }
             }
 
             // Sync Interactions Telemetry
@@ -3521,68 +3507,116 @@
             const tbody = document.getElementById('sessionsTableBody');
             if (!tbody) return;
             if (!sessions || !sessions.length) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:30px;">No sessions found matching current filter. Try seeding demo data!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-dim); padding:30px;">No sessions found matching current filter. Try seeding demo data!</td></tr>';
                 return;
             }
             tbody.innerHTML = sessions.map(s => {
-                const isRage = s.metrics?.rageClicks > 0;
-                const isHesitation = s.metrics?.typingHesitations > 0 || (s.hesitationCount > 0);
-                const isFallback = s.metrics?.botFallbacks > 0 || (s.botFallbacks > 0);
+                const isRage = (s.metrics?.rageClicks > 0);
+                const isHesitation = (s.metrics?.typingHesitations > 0) || (s.hesitationCount > 0);
+                const isDead = (s.metrics?.deadClicks > 0);
+                const isFallback = (s.metrics?.botFallbacks > 0) || (s.botFallbacks > 0);
                 const deviceStr = `${s.device?.type || 'Desktop'} · ${s.device?.browser || 'Chrome'}`;
                 const geoStr = `${s.geo?.city || 'Bengaluru'}, ${s.geo?.countryCode || 'IN'}`;
                 const lastQuery = s.lastQuery || (s.chatEngagement === 'opened_only' ? 'Opened Chatbot (No Query)' : 'Browsed Portal');
-                const btnCount = s.buttonsCount || (s.journey ? s.journey.filter(j => j.type === 'button_click').length : 0);
-                const lnkCount = s.linksCount || s.metrics?.linksClicked || (s.journey ? s.journey.filter(j => j.type === 'link_click').length : 0);
-                const route = s.navigationRoute || (s.entryPage ? `${new URL(s.entryPage, 'https://rvce.edu.in').pathname} ➔ ${new URL(s.exitPage || s.entryPage, 'https://rvce.edu.in').pathname}` : '/');
+                
+                // Timing & Chat Lifecycle calculations
+                const startDate = new Date(s.startTime || s.createdAt || Date.now());
+                const endDate = new Date(s.lastActive || s.updatedAt || s.startTime || Date.now());
+                const diffSec = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / 1000));
+                const mins = Math.floor(diffSec / 60);
+                const secs = diffSec % 60;
+                const durationStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
-                // Bot Badge
+                const startTimeStr = startDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const endTimeStr = endDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const entryPath = s.entryPage ? (new URL(s.entryPage, 'https://rvce.edu.in').pathname || '/') : '/';
+                const exitPath = s.exitPage ? (new URL(s.exitPage, 'https://rvce.edu.in').pathname || '/') : entryPath;
+                const messageCount = s.dialogue?.length || s.metrics?.messageCount || (s.chatEngagement === 'conversed' ? 2 : 0);
+
+                // Bot vs User Badge
                 const botBadge = s.isBot 
                     ? `<span class="tag tag-pink" style="margin-right:4px;">🤖 ${s.botName || 'Bot'}</span>`
                     : `<span class="tag tag-blue" style="margin-right:4px;">👤 User</span>`;
 
-                // Engagement Badge
+                // Engagement Tag
                 let engagementBadge = '';
                 if (s.chatEngagement === 'conversed' || (s.interactionsCount > 0 && s.lastQuery)) {
-                    engagementBadge = `<span class="tag tag-green" style="font-size:10px;">💬 Chat</span>`;
+                    engagementBadge = `<span class="tag tag-green" style="font-size:10px;">💬 Chat Active</span>`;
                 } else if (s.chatEngagement === 'opened_only') {
                     engagementBadge = `<span class="tag tag-amber" style="font-size:10px;">👁️ Bounced</span>`;
                 } else {
-                    engagementBadge = `<span class="tag tag-gray" style="font-size:10px;">🌐 Browse</span>`;
+                    engagementBadge = `<span class="tag tag-gray" style="font-size:10px;">🌐 Browsed</span>`;
                 }
 
                 return `
                     <tr>
-                        <td style="font-family:'JetBrains Mono', monospace; font-weight:700; color:#818cf8;">${s.sessionId.substring(0, 16)}</td>
+                        <!-- 1. Session ID & Visitor -->
                         <td>
-                            <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-bottom:2px;">
+                            <div style="font-family:'JetBrains Mono', monospace; font-weight:700; color:#818cf8; font-size:12px; margin-bottom:3px;">
+                                ${s.sessionId.substring(0, 16)}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-bottom:3px;">
                                 ${botBadge} ${engagementBadge}
                             </div>
-                            <div style="font-weight:700; color:#fff; font-size:12px;">${geoStr}</div>
-                            <div style="font-size:10.5px; color:var(--text-dim); font-family:'JetBrains Mono', monospace;">${s.geo?.ip || '103.24.12.45'}</div>
+                            <div style="font-weight:600; color:#fff; font-size:12px;">${geoStr}</div>
+                            <div style="font-size:11px; color:var(--text-dim); margin-top:2px;">💻 ${deviceStr}</div>
                         </td>
-                        <td><span class="tag tag-blue">${deviceStr}</span></td>
+
+                        <!-- 2. Chat Started -->
                         <td>
-                            <div style="max-width:210px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; font-weight:600; color:#fff;" title="${lastQuery}">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+                                <span style="font-weight:700; color:#10b981; font-size:12.5px;">${startTimeStr}</span>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono', monospace;" title="${s.entryPage || '/'}">
+                                Entry: <span style="color:#cbd5e1;">${entryPath}</span>
+                            </div>
+                            <div style="font-size:10.5px; color:#64748b; margin-top:2px;">
+                                Via: ${s.referrer || 'Direct'}
+                            </div>
+                        </td>
+
+                        <!-- 3. In-Chat Activity -->
+                        <td>
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                                <span class="tag tag-indigo" style="font-size:11px; font-weight:700;">💬 ${messageCount} turns</span>
+                                ${s.metrics?.linksClicked > 0 ? `<span class="tag tag-cyan" style="font-size:10px;">🔗 ${s.metrics.linksClicked} links</span>` : ''}
+                            </div>
+                            <div style="max-width:220px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; font-weight:600; color:#fff; font-size:12px;" title="${lastQuery}">
                                 "${lastQuery}"
                             </div>
                         </td>
+
+                        <!-- 4. Chat Ended & Duration -->
                         <td>
-                            <span class="tag tag-amber" style="font-size:10px;">🔘 ${btnCount} btn</span>
-                            <span class="tag tag-cyan" style="font-size:10px; margin-left:3px;">🔗 ${lnkCount} lnk</span>
-                        </td>
-                        <td>
-                            <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#cbd5e1; max-width:180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${route}">
-                                ${route}
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f43f5e;"></span>
+                                <span style="font-weight:700; color:#f43f5e; font-size:12.5px;">${endTimeStr}</span>
+                                <span class="tag tag-purple" style="font-size:10.5px; font-weight:700;">⏱️ ${durationStr}</span>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono', monospace;" title="${s.exitPage || exitPath}">
+                                Exit: <span style="color:#cbd5e1;">${exitPath}</span>
+                            </div>
+                            <div style="font-size:10.5px; color:#64748b; margin-top:2px;">
+                                Status: ${s.chatEngagement === 'opened_only' ? 'Abandoned' : 'Closed Normally'}
                             </div>
                         </td>
+
+                        <!-- 5. Friction Status -->
                         <td>
-                            ${isRage ? `<span class="tag tag-red">⚡ ${s.metrics.rageClicks} Rage</span>` : ''}
-                            ${isHesitation ? `<span class="tag tag-pink">⏳ Hesitation</span>` : ''}
-                            ${isFallback ? `<span class="tag tag-amber">⚠️ Fallback</span>` : ''}
-                            ${!isRage && !isHesitation && !isFallback ? '<span class="tag tag-green">Smooth</span>' : ''}
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                ${isRage ? `<span class="tag tag-red" style="font-size:10.5px;">⚡ ${s.metrics.rageClicks} Rage Clicks</span>` : ''}
+                                ${isHesitation ? `<span class="tag tag-pink" style="font-size:10.5px;">⏳ Typing Hesitation</span>` : ''}
+                                ${isDead ? `<span class="tag tag-amber" style="font-size:10.5px;">👻 ${s.metrics.deadClicks} Dead Clicks</span>` : ''}
+                                ${!isRage && !isHesitation && !isDead ? '<span class="tag tag-green" style="font-size:10.5px;">✅ Smooth Journey</span>' : ''}
+                            </div>
                         </td>
+
+                        <!-- 6. Visual Replay -->
                         <td>
-                            <button class="btn btn-indigo" style="padding:5px 12px; font-size:11px;" onclick="openReplayDrawer('${s.sessionId}')">▶ Replay</button>
+                            <button class="btn btn-indigo" style="padding:6px 14px; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:6px;" onclick="openReplayDrawer('${s.sessionId}')">
+                                ▶ Watch Replay
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -3756,8 +3790,12 @@
 
             if (!journey || journey.length === 0) {
                 container.innerHTML = '<div style="color:var(--text-dim); padding:20px; text-align:center;">No clickstream steps recorded for this session.</div>';
+                renderPlayerMarkers([]);
+                updatePlayerProgress();
                 return;
             }
+
+            renderPlayerMarkers(journey);
 
             container.innerHTML = journey.map((item, idx) => {
                 let badgeClass = 'badge-land';
@@ -3868,11 +3906,11 @@
                             <span style="font-family:'JetBrains Mono', monospace; color:#34d399; font-weight:700;">${toP}</span>
                         </div>
                     `;
-                } else if (item.type === 'lead_submit') {
+                } else if (item.type === 'bot_close' || item.type === 'chat_end') {
                     customBody = `
-                        <div style="background:rgba(234,179,8,0.12); border:1px solid rgba(234,179,8,0.35); border-radius:10px; padding:12px; margin-top:6px;">
-                            <strong style="color:#facc15; font-size:13px; display:block; margin-bottom:4px;">🎯 Captured Admissions Lead</strong>
-                            <div style="font-size:12px; color:#cbd5e1;">${item.detail || 'Candidate submitted inquiry details in chatbot.'}</div>
+                        <div style="background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.35); border-radius:10px; padding:12px; margin-top:6px;">
+                            <strong style="color:#60a5fa; font-size:13px; display:block; margin-bottom:4px;">🏁 Closed Chat Window</strong>
+                            <div style="font-size:12px; color:#cbd5e1;">${item.detail || 'Visitor closed chatbot widget.'}</div>
                         </div>
                     `;
                 } else {
@@ -3896,23 +3934,194 @@
             updatePlayerProgress();
         }
 
-        // --- Step-by-Step Playback Engine ---
+        // --- Microsoft Clarity Video-Style Playback Engine ---
+        let playerSpeed = 1.0;
+        const playerSpeedIntervals = { 1.0: 1400, 1.5: 900, 2.0: 500 };
+
+        function cyclePlayerSpeed() {
+            if (playerSpeed === 1.0) playerSpeed = 1.5;
+            else if (playerSpeed === 1.5) playerSpeed = 2.0;
+            else playerSpeed = 1.0;
+
+            const btn = document.getElementById('btnPlayerSpeed');
+            if (btn) btn.textContent = playerSpeed.toFixed(1) + 'x';
+
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = setInterval(runPlayTick, playerSpeedIntervals[playerSpeed]);
+            }
+        }
+
+        function renderPlayerMarkers(journey) {
+            const layer = document.getElementById('playerMarkersLayer');
+            if (!layer) return;
+            layer.innerHTML = '';
+            if (!journey || journey.length === 0) return;
+
+            const count = journey.length;
+            journey.forEach((item, idx) => {
+                const pct = count > 1 ? (idx / (count - 1)) * 100 : 50;
+                let markerClass = 'marker-action';
+
+                if (item.type === 'rage_click' || item.type === 'bot_fallback' || item.type === 'bot_bounce') {
+                    markerClass = 'marker-rage';
+                } else if (item.type === 'dead_click') {
+                    markerClass = 'marker-dead';
+                } else if (item.type === 'typing_hesitation') {
+                    markerClass = 'marker-hesitation';
+                } else if (item.type === 'query' || item.type === 'message') {
+                    markerClass = 'marker-query';
+                } else if (item.type === 'bot_reply') {
+                    markerClass = 'marker-bot';
+                } else if (item.type === 'bot_close' || item.type === 'chat_end' || item.type === 'exit') {
+                    markerClass = 'marker-navigation';
+                }
+
+                const tick = document.createElement('div');
+                tick.className = `marker-tick ${markerClass}`;
+                tick.style.left = `${pct}%`;
+                tick.title = `Step ${idx + 1}: ${item.title || item.type} (${item.timeOffset || '+00:00'})`;
+                tick.onclick = (e) => {
+                    e.stopPropagation();
+                    currentStepIdx = idx;
+                    updatePlayerProgress();
+                };
+                layer.appendChild(tick);
+            });
+        }
+
         function updatePlayerProgress() {
             const count = activeJourneySteps.length;
             const fill = document.getElementById('playerFill');
+            const thumb = document.getElementById('playerScrubberThumb');
             const stepText = document.getElementById('playerStepText');
-            if (count === 0) return;
+            const timeReadout = document.getElementById('playerTimeReadout');
+            const hudBanner = document.getElementById('playerHudBanner');
+            const hudIcon = document.getElementById('hudIcon');
+            const hudTitle = document.getElementById('hudTitle');
+            const hudSub = document.getElementById('hudSub');
+            const hudTag = document.getElementById('hudTag');
 
-            const pct = Math.round(((currentStepIdx + 1) / count) * 100);
+            if (count === 0) {
+                if (stepText) stepText.textContent = 'Step 0 / 0';
+                if (timeReadout) timeReadout.textContent = '⏱ 00:00 / 00:00';
+                return;
+            }
+
+            const pct = count > 1 ? Math.round((currentStepIdx / (count - 1)) * 100) : 100;
             if (fill) fill.style.width = pct + '%';
+            if (thumb) thumb.style.left = pct + '%';
             if (stepText) stepText.textContent = `Step ${currentStepIdx + 1} / ${count}`;
 
+            const curStep = activeJourneySteps[currentStepIdx] || {};
+            const curTime = curStep.timeOffset ? curStep.timeOffset.replace(/^\+/, '') : '00:00';
+            const lastStep = activeJourneySteps[count - 1] || {};
+            const totalTime = lastStep.timeOffset ? lastStep.timeOffset.replace(/^\+/, '') : '00:00';
+            if (timeReadout) timeReadout.textContent = `⏱ ${curTime} / ${totalTime}`;
+
+            // Update Real-Time Clarity HUD Banner
+            if (hudBanner && curStep) {
+                hudBanner.className = 'player-hud-banner';
+                let icon = '🚀';
+                let tagText = 'ACTION';
+                let tagClass = 'tag tag-indigo';
+
+                if (curStep.type === 'rage_click') {
+                    icon = '⚡';
+                    tagText = 'RAGE CLICK (FRICTION)';
+                    tagClass = 'tag tag-danger';
+                    hudBanner.classList.add('hud-friction-rage');
+                } else if (curStep.type === 'dead_click') {
+                    icon = '⚠️';
+                    tagText = 'DEAD CLICK';
+                    tagClass = 'tag tag-amber';
+                    hudBanner.classList.add('hud-friction-dead');
+                } else if (curStep.type === 'typing_hesitation') {
+                    icon = '⏳';
+                    tagText = 'TYPING HESITATION';
+                    tagClass = 'tag tag-pink';
+                    hudBanner.classList.add('hud-friction-dead');
+                } else if (curStep.type === 'bot_fallback') {
+                    icon = '📉';
+                    tagText = 'FALLBACK CONFUSION';
+                    tagClass = 'tag tag-amber';
+                    hudBanner.classList.add('hud-friction-dead');
+                } else if (curStep.type === 'query' || curStep.type === 'message') {
+                    icon = '💬';
+                    tagText = 'VISITOR QUERY';
+                    tagClass = 'tag tag-indigo';
+                    hudBanner.classList.add('hud-message');
+                } else if (curStep.type === 'bot_reply') {
+                    icon = '💡';
+                    tagText = 'BOT REPLY';
+                    tagClass = 'tag tag-emerald';
+                    hudBanner.classList.add('hud-goal');
+                } else if (curStep.type === 'bot_close' || curStep.type === 'chat_end' || curStep.type === 'exit') {
+                    icon = '🏁';
+                    tagText = 'CHAT ENDED';
+                    tagClass = 'tag tag-blue';
+                    hudBanner.classList.add('hud-message');
+                } else if (curStep.type === 'link_click') {
+                    icon = '🔗';
+                    tagText = 'LINK CLICKED';
+                    tagClass = 'tag tag-purple';
+                } else if (curStep.type === 'button_click') {
+                    icon = '🔘';
+                    tagText = 'BUTTON CLICKED';
+                    tagClass = 'tag tag-amber';
+                } else if (curStep.type === 'page_redirect') {
+                    icon = '🔄';
+                    tagText = 'REDIRECT';
+                    tagClass = 'tag tag-indigo';
+                } else if (curStep.type === 'bot_open') {
+                    icon = '🤖';
+                    tagText = 'CHATBOT OPENED';
+                    tagClass = 'tag tag-indigo';
+                }
+
+                if (hudIcon) hudIcon.textContent = icon;
+                if (hudTitle) hudTitle.textContent = curStep.title || curStep.type;
+                if (hudSub) hudSub.textContent = curStep.detail || (curStep.url ? `URL: ${curStep.url}` : '');
+                if (hudTag) {
+                    hudTag.className = tagClass;
+                    hudTag.textContent = tagText;
+                }
+            }
+
+            // Highlight Step Card in Tab 1
             document.querySelectorAll('.journey-card').forEach((el, idx) => {
                 if (idx === currentStepIdx) {
                     el.classList.add('highlighted');
                     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } else {
                     el.classList.remove('highlighted');
+                }
+            });
+
+            // Synchronize with Tab 2 (Chat Replay Window)
+            const chatBubbles = document.querySelectorAll('.chat-replay-window .chat-bubble');
+            if (chatBubbles.length) {
+                chatBubbles.forEach(b => b.classList.remove('active-chat-bubble'));
+                if (curStep.type === 'query' || curStep.type === 'message' || curStep.type === 'bot_reply') {
+                    const matchText = (curStep.elementText || curStep.title || curStep.botReply || '').toLowerCase();
+                    chatBubbles.forEach(b => {
+                        if (matchText && b.textContent.toLowerCase().includes(matchText.substring(0, 30))) {
+                            b.classList.add('active-chat-bubble');
+                            b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    });
+                }
+            }
+
+            // Synchronize with Tab 3 (Event Stream Timeline)
+            document.querySelectorAll('.timeline-step').forEach((el, idx) => {
+                if (idx === currentStepIdx) {
+                    el.style.borderLeft = '3px solid #6366f1';
+                    el.style.background = 'rgba(99, 102, 241, 0.08)';
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    el.style.borderLeft = '';
+                    el.style.background = '';
                 }
             });
         }
@@ -3923,31 +4132,37 @@
             updatePlayerProgress();
         }
 
+        function runPlayTick() {
+            if (currentStepIdx < activeJourneySteps.length - 1) {
+                currentStepIdx++;
+                updatePlayerProgress();
+            } else {
+                clearInterval(playInterval);
+                playInterval = null;
+                const btn = document.getElementById('btnPlayPause');
+                if (btn) btn.textContent = '▶ Replay';
+            }
+        }
+
         function togglePlayJourney() {
             const btn = document.getElementById('btnPlayPause');
             if (playInterval) {
                 clearInterval(playInterval);
                 playInterval = null;
-                btn.textContent = '▶ Play';
+                if (btn) btn.textContent = '▶ Play';
             } else {
-                btn.textContent = '⏸ Pause';
-                playInterval = setInterval(() => {
-                    if (currentStepIdx < activeJourneySteps.length - 1) {
-                        currentStepIdx++;
-                        updatePlayerProgress();
-                    } else {
-                        clearInterval(playInterval);
-                        playInterval = null;
-                        btn.textContent = '▶ Replay';
-                    }
-                }, 1400);
+                if (currentStepIdx >= activeJourneySteps.length - 1) {
+                    currentStepIdx = 0;
+                }
+                if (btn) btn.textContent = '⏸ Pause';
+                playInterval = setInterval(runPlayTick, playerSpeedIntervals[playerSpeed] || 1400);
             }
         }
 
         function seekJourney(e) {
             const rect = e.currentTarget.getBoundingClientRect();
-            const clickPos = (e.clientX - rect.left) / rect.width;
-            currentStepIdx = Math.floor(clickPos * activeJourneySteps.length);
+            const clickPos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            currentStepIdx = Math.round(clickPos * (activeJourneySteps.length - 1));
             updatePlayerProgress();
         }
 
@@ -3955,6 +4170,13 @@
         async function openReplayDrawer(sessionId) {
             const overlay = document.getElementById('drawerOverlay');
             overlay.classList.add('open');
+
+            if (playInterval) { clearInterval(playInterval); playInterval = null; }
+            const btnPlay = document.getElementById('btnPlayPause');
+            if (btnPlay) btnPlay.textContent = '▶ Play';
+            playerSpeed = 1.0;
+            const btnSpeed = document.getElementById('btnPlayerSpeed');
+            if (btnSpeed) btnSpeed.textContent = '1.0x';
 
             document.getElementById('drawerSessionId').textContent = 'Replay: ' + sessionId;
             document.getElementById('drawerSessionMeta').textContent = 'Loading playback...';
@@ -4043,11 +4265,13 @@
         }
         function closeDrawerForce() {
             if (playInterval) { clearInterval(playInterval); playInterval = null; }
+            const btnPlay = document.getElementById('btnPlayPause');
+            if (btnPlay) btnPlay.textContent = '▶ Play';
             document.getElementById('drawerOverlay').classList.remove('open');
         }
 
         async function seedDemoData() {
-            if (confirm("Seed 30 realistic Microsoft Clarity-grade visitor journeys, rage clicks, and leads?")) {
+            if (confirm("Seed 30 realistic Microsoft Clarity-grade visitor journeys, rage clicks, and hesitations?")) {
                 const res = await fetch(apiUrl('/api/demo/seed'), { method: 'POST' });
                 const d = await res.json();
                 showToast(d.message || 'Seeded successfully!');

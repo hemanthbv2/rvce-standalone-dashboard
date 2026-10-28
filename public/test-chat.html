@@ -158,9 +158,9 @@
                     <strong>💰 Ask Fee Structure</strong>
                     <span>Queries branch fee details & redirection</span>
                 </button>
-                <button class="test-btn" onclick="submitTestLead()">
-                    <strong>📝 Submit Lead</strong>
-                    <span>Captures candidate contact details</span>
+                <button class="test-btn" onclick="endTestChat()">
+                    <strong>🏁 End / Close Chat</strong>
+                    <span>Logs chat end duration & exit</span>
                 </button>
             </div>
 
@@ -427,21 +427,12 @@
             try { sessionStorage.setItem('rvce_chat_history', JSON.stringify(chatHistory)); } catch(e) {}
         }
 
-        function submitTestLead() {
-            const candidateName = "Priya Sharma";
-            const phone = "9845012345";
-            const email = "priya.sharma@example.com";
-            
-            if (window.RVCETelemetry) {
-                window.RVCETelemetry.trackLead({
-                    name: candidateName,
-                    phone: phone,
-                    email: email,
-                    branch: "Computer Science & Engineering",
-                    city: "Bengaluru"
-                });
+        function endTestChat() {
+            if (window.RVCETelemetry && window.RVCETelemetry.trackBotClose) {
+                window.RVCETelemetry.trackBotClose();
             }
-            showToast(`✅ Lead Captured: ${candidateName} (${phone}) ➔ Synced to CRM & Supabase!`);
+            appendMessage('bot', 'Thank you for chatting with RVCE Assistant! Chat session ended.');
+            showToast('🏁 Chat Session Ended: Duration & Exit Synced!');
         }
 
         function navigateSim(path) {

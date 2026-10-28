@@ -991,8 +991,8 @@ app.get('/api/dashboard/overview', authenticateToken, async (req, res) => {
             openedOnly: countOpened,
             botCount: countBots,
             humanCount: countUsers,
-            botRatio: `${botRatio}%`,
-            chatEngagementRate: `${chatEngagementRate}%`,
+            botRatio: botRatio,
+            chatEngagementRate: chatEngagementRate,
             totalLinksClicked,
             liveNow: Math.max(liveNow, 1),
             rageClickSessions,
@@ -2198,14 +2198,13 @@ function executeSeedData() {
                 { step: hasHesitation ? (hasFallback ? 10 : 9) : (hasFallback ? 9 : 8), type: 'page_redirect', title: `Redirected to ${scen.redir2.to.replace('https://rvce.edu.in', '')}`, detail: `From ${scen.redir1.to.replace('https://rvce.edu.in', '')} ➔ ${scen.redir2.to}`, url: scen.redir2.to, targetUrl: scen.redir2.to, timeOffset: '01:28', timestamp: new Date(baseTime.getTime() + 88000) },
                 ...(hasRage ? [{ step: hasHesitation ? 11 : 10, type: 'rage_click', title: `⚡ Rage Click on Button: "${scen.button1}"`, detail: '4 rapid clicks within 600ms (Frustration detected)', url: scen.redir2.to, elementText: scen.button1, timeOffset: '01:45', timestamp: new Date(baseTime.getTime() + 105000) }] : []),
                 ...(hasDead ? [{ step: hasHesitation ? 12 : 11, type: 'dead_click', title: '👻 Dead Click on Message Bubble', detail: 'Clicked on non-interactive bot speech text', url: scen.redir2.to, elementText: 'Cutoff Table Info', timeOffset: '01:55', timestamp: new Date(baseTime.getTime() + 115000) }] : []),
-                ...(scen.isLead ? [{ step: 13, type: 'lead_submit', title: 'Submitted Application Inquiry', detail: `Candidate ${i+1} submitted contact details for ${scen.leadBranch}`, url: scen.redir2.to, elementText: scen.leadBranch, timeOffset: '02:10', timestamp: new Date(baseTime.getTime() + 130000) }] : []),
-                { step: 14, type: 'exit', title: 'Exited Site', detail: `Left site on ${scen.redir2.to.replace('https://rvce.edu.in', '')} after dwell time`, url: scen.redir2.to, timeOffset: '02:30', timestamp: new Date(baseTime.getTime() + 150000) }
+                { step: 13, type: 'bot_close', title: 'Closed Chatbot Widget', detail: 'Visitor finished conversation and closed chat window', url: scen.redir2.to, timeOffset: '02:15', timestamp: new Date(baseTime.getTime() + 135000) },
+                { step: 14, type: 'exit', title: 'Session Ended', detail: `Completed 2m 30s session on ${scen.redir2.to.replace('https://rvce.edu.in', '')}`, url: scen.redir2.to, timeOffset: '02:30', timestamp: new Date(baseTime.getTime() + 150000) }
             ];
 
             dialogue = [
                 { sender: 'user', text: scen.q, intent: scen.topic, timestamp: new Date(baseTime.getTime() + 28000) },
-                { sender: 'bot', text: scen.a, intent: scen.topic, timestamp: new Date(baseTime.getTime() + 30000) },
-                ...(scen.isLead ? [{ sender: 'user', text: `Submitted contact details for ${scen.leadBranch}`, intent: 'lead_captured', timestamp: new Date(baseTime.getTime() + 130000) }] : [])
+                { sender: 'bot', text: scen.a, intent: scen.topic, timestamp: new Date(baseTime.getTime() + 30000) }
             ];
         }
 
@@ -2253,8 +2252,7 @@ function executeSeedData() {
             startTime: baseTime,
             lastActive: new Date(baseTime.getTime() + 150000),
             lastIntent: scen.topic,
-            isConvertedLead: scen.isLead && !isBot,
-            leadSummary: (scen.isLead && !isBot) ? { name: `Candidate ${i+1}`, phone: '98450' + (20000 + i), email: `applicant${i+1}@gmail.com` } : null
+            chatDurationSeconds: 150
         };
         mockSessions.push(sessObj);
         memStore.sessions.set(sid, sessObj);
@@ -2295,28 +2293,9 @@ function executeSeedData() {
             memStore.interactions.push(intObj);
         });
 
-        if (scen.isLead && !isBot) {
-            const leadObj = {
-                _id: new mongoose.Types.ObjectId(),
-                sessionId: sid,
-                instituteId: 'rvce',
-                name: `Candidate ${i + 1}`,
-                phone: '98450' + (20000 + i),
-                email: `applicant${i+1}@gmail.com`,
-                status: i % 4 === 0 ? 'Qualified' : (i % 3 === 0 ? 'Enrolled' : (i % 2 === 0 ? 'Contacted' : 'New')),
-                score: 85 + (i % 15),
-                notes: `Interested in ${scen.leadBranch}. Cutoff & hostel eligibility discussed.`,
-                attribution: { referrer: refObj.ref, entryPage: '/', landingUrl: 'https://rvce.edu.in/' },
-                geo: { country: cityObj.country, city: cityObj.city, region: cityObj.region },
-                device: { type: i % 2 === 0 ? 'Desktop' : 'Mobile', os: i % 2 === 0 ? 'Windows 11' : 'iOS', browser: 'Chrome' },
-                createdAt: new Date(baseTime.getTime() + 130000)
-            };
-            mockLeads.push(leadObj);
-            memStore.leads.set(leadObj._id, leadObj);
-        }
     }
 
-    return { mockSessions, mockInteractions, mockLeads };
+    return { mockSessions, mockInteractions, mockLeads: [] };
 }
 
 app.post('/api/demo/seed', async (req, res) => {
