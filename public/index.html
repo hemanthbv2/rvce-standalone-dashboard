@@ -1596,27 +1596,56 @@
         </div>
 
         <ul class="nav-links">
-            <li class="nav-item active" onclick="switchTab('clarity')">
+            <li class="nav-item active" onclick="switchTab('clarity')" id="nav-clarity">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 3v18h18" />
                     <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
                 </svg>
                 Clarity UX & Health
             </li>
-            <li class="nav-item" onclick="switchTab('topics')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                </svg>
-                Conversations & Topics
-                <span class="nav-counter" id="interactionsNavBadge">--</span>
-            </li>
-            <li class="nav-item" onclick="switchTab('recordings')">
+            <li class="nav-item" onclick="switchTab('recordings')" id="nav-recordings">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
                 </svg>
                 Session Recordings
                 <span class="nav-counter" id="sessionsNavBadge">--</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('interactions')" id="nav-interactions">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+                Conversations & Topics
+                <span class="nav-counter" id="interactionsNavBadge">--</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('analytics')" id="nav-analytics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20V10" />
+                    <path d="M18 20V4" />
+                    <path d="M6 20v-4" />
+                </svg>
+                Keyword Analytics
+            </li>
+            <li class="nav-item" onclick="switchTab('leads')" id="nav-leads">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Admissions Leads CRM
+                <span class="nav-counter" id="leadsNavBadge" style="background:#10b981; color:#fff;">--</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('bots')" id="nav-bots">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="10" rx="2" />
+                    <circle cx="12" cy="5" r="2" />
+                    <path d="M12 7v4" />
+                    <line x1="8" y1="16" x2="8" y2="16" />
+                    <line x1="16" y1="16" x2="16" y2="16" />
+                </svg>
+                Bot Security Matrix
+                <span class="nav-counter" id="botsNavBadge">--</span>
             </li>
         </ul>
 
@@ -2013,6 +2042,42 @@
                 </div>
             </div>
 
+            <!-- Daily Sessions Downloader & Export Suite -->
+            <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(99,102,241,0.35); border-radius:14px; padding:14px 20px; margin-bottom:18px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:14px; box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:10px; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); display:flex; align-items:center; justify-content:center; color:#818cf8; font-size:18px;">
+                        📅
+                    </div>
+                    <div>
+                        <div style="font-weight:700; color:#fff; font-size:14px; display:flex; align-items:center; gap:8px;">
+                            Daily Session Archiver & Bulk Download
+                            <span class="tag tag-cyan" style="font-size:10px;">Per-Day Telemetry</span>
+                        </div>
+                        <div style="font-size:11.5px; color:var(--text-dim); margin-top:2px;">
+                            Download every session recorded on any date with full dialogue, timestamps, dwell times, and clickstream
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label for="dailyExportDatePicker" style="font-size:12px; color:var(--text-dim); font-weight:600;">Date:</label>
+                        <input type="date" id="dailyExportDatePicker" style="padding:6px 10px; border-radius:8px; background:rgba(30,41,59,0.85); border:1px solid var(--border); color:#fff; font-size:12px; outline:none; font-family:'JetBrains Mono', monospace;" title="Filter by date">
+                    </div>
+                    <button class="btn btn-green" onclick="exportDailySessions('xlsx')" style="padding:7px 13px; font-size:12px; font-weight:700;">
+                        📊 Download Day (.xlsx)
+                    </button>
+                    <button class="btn btn-indigo" onclick="exportDailySessions('csv')" style="padding:7px 13px; font-size:12px; font-weight:700;">
+                        📥 Download Day (.csv)
+                    </button>
+                    <button class="btn" onclick="exportDailySessions('json')" style="padding:7px 13px; font-size:12px; font-weight:700; background:rgba(14,165,233,0.18); border:1px solid rgba(14,165,233,0.4); color:#38bdf8;">
+                        📄 Download Day (.json)
+                    </button>
+                    <a href="/print-report.html" target="_blank" class="btn" style="background:rgba(220,38,38,0.2); border-color:rgba(220,38,38,0.4); color:#fca5a5; font-size:12px; padding:7px 13px; text-decoration:none; font-weight:700;">
+                        🖨️ Daily Printable Dossier
+                    </a>
+                </div>
+            </div>
+
             <div class="card col-12">
                 <div class="card-header">
                     <div>
@@ -2151,6 +2216,88 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+
+                <!-- VIEW 6: Admissions Leads CRM Pipeline (Restored Old Dashboard Feature) -->
+        <div id="view-leads" style="display:none;">
+            <!-- Leads KPI Overview -->
+            <div class="stats-grid stats-grid-4" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <span class="stat-label">Total Captured Leads <span style="color:#10b981;">●</span></span>
+                    <div class="stat-val" id="leadsKpiTotal" style="color:#34d399;">--</div>
+                    <div class="stat-sub">From interactive chatbot inquiries</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Verified Contacts <span style="color:#38bdf8;">●</span></span>
+                    <div class="stat-val" id="leadsKpiVerified" style="color:#60a5fa;">--</div>
+                    <div class="stat-sub">Direct phone & email verified</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Avg Academic Score <span style="color:#818cf8;">●</span></span>
+                    <div class="stat-val" id="leadsKpiAvgScore" style="color:#a78bfa;">--</div>
+                    <div class="stat-sub">KCET / COMEDK / 12th benchmark</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Top Preferred Program <span style="color:#f43f5e;">●</span></span>
+                    <div class="stat-val" id="leadsKpiTopBranch" style="font-size:20px; color:#f472b6; padding-top:4px;">Computer Science</div>
+                    <div class="stat-sub">Highest inquiry volume branch</div>
+                </div>
+            </div>
+
+            <!-- Leads Filter & Action Bar -->
+            <div class="card col-12" style="margin-bottom: 24px;">
+                <div class="card-header" style="flex-wrap:wrap; gap:14px;">
+                    <div>
+                        <div class="card-title">Admissions Submissions Database</div>
+                        <div class="card-sub">Real-time candidate inquiry stream, branch preferences, and CRM status pipeline</div>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                        <input type="date" id="leadStartDate" style="padding:7px 10px; font-size:12px; background:rgba(15,23,42,0.85); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none;" title="Start Date">
+                        <span style="color:var(--text-dim); font-size:12px;">to</span>
+                        <input type="date" id="leadEndDate" style="padding:7px 10px; font-size:12px; background:rgba(15,23,42,0.85); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none;" title="End Date">
+                        <select id="leadStatusFilter" onchange="renderLeadsTable()" style="padding:7px 12px; font-size:12px; background:rgba(15,23,42,0.85); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none; cursor:pointer;">
+                            <option value="all">All Statuses</option>
+                            <option value="New">New Inquiries</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Counseling Scheduled">Counseling Scheduled</option>
+                            <option value="Admitted">Admitted</option>
+                            <option value="Archived">Archived</option>
+                        </select>
+                        <input type="text" id="leadSearchInput" placeholder="🔍 Search name, phone, branch..." oninput="renderLeadsTable()" style="padding:7px 12px; font-size:12px; background:rgba(15,23,42,0.85); color:var(--text); border:1px solid var(--border); border-radius:8px; outline:none; min-width:210px;">
+                        <button class="btn btn-green" onclick="exportLeads('xlsx')" style="padding:7px 14px; font-size:12px; font-weight:700;">
+                            📊 Export Excel
+                        </button>
+                        <button class="btn btn-indigo" onclick="exportLeads('csv')" style="padding:7px 14px; font-size:12px; font-weight:700;">
+                            📥 CSV
+                        </button>
+                        <button class="btn" onclick="loadLeads()" style="padding:7px 14px; font-size:12px;">
+                            ↻ Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date / Timestamp</th>
+                                <th>Candidate</th>
+                                <th>Phone / WhatsApp</th>
+                                <th>Email</th>
+                                <th>Branch / Course Interest</th>
+                                <th>Score / Rank</th>
+                                <th>CRM Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leadsTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align:center; color:var(--text-dim); padding:30px;">Loading candidate submissions from database...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -2409,7 +2556,15 @@
                     <h3 style="font-size:16px; font-weight:800; color:#fff;" id="drawerSessionId">Session Playback</h3>
                     <p style="font-size:11.5px; color:var(--text-dim); margin-top:2px;" id="drawerSessionMeta">Device & Geo info</p>
                 </div>
-                <button class="btn" style="padding:6px 12px; font-size:12px;" onclick="closeDrawerForce()">✕ Close</button>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button class="btn btn-indigo" style="padding:6px 12px; font-size:12px; font-weight:700;" onclick="downloadActiveDrawerSession('json')" title="Download session JSON dossier">
+                        📥 Export JSON
+                    </button>
+                    <button class="btn" style="padding:6px 12px; font-size:12px; font-weight:700; background:rgba(30,41,59,0.8); border:1px solid var(--border); color:#38bdf8;" onclick="downloadActiveDrawerSession('csv')" title="Download session CSV">
+                        📊 Export CSV
+                    </button>
+                    <button class="btn" style="padding:6px 12px; font-size:12px;" onclick="closeDrawerForce()">✕ Close</button>
+                </div>
             </div>
 
             <!-- Drawer Tabs -->
@@ -2646,50 +2801,336 @@
             }
         });
 
+        let cachedLeads = [];
+
         function switchTab(tab) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const navIndex = {
-                clarity: 0,
-                topics: 1,
-                interactions: 1,
-                analytics: 1,
-                recordings: 2,
-                sessions: 2
-            }[tab] ?? 0;
-            const items = document.querySelectorAll('.nav-links .nav-item');
-            if (items && items[navIndex]) items[navIndex].classList.add('active');
+            
+            // Activate corresponding nav item
+            const navMap = {
+                clarity: 'nav-clarity',
+                recordings: 'nav-recordings',
+                sessions: 'nav-recordings',
+                interactions: 'nav-interactions',
+                topics: 'nav-interactions',
+                analytics: 'nav-analytics',
+                leads: 'nav-leads',
+                bots: 'nav-bots'
+            };
+            const navId = navMap[tab] || 'nav-clarity';
+            const navEl = document.getElementById(navId);
+            if (navEl) navEl.classList.add('active');
 
             const isClarity = tab === 'clarity';
-            const isTopics = tab === 'topics' || tab === 'interactions' || tab === 'analytics' || tab === 'intelligence';
-            const isRecordings = tab === 'recordings' || tab === 'sessions' || tab === 'bots';
+            const isRecordings = tab === 'recordings' || tab === 'sessions';
+            const isInteractions = tab === 'interactions' || tab === 'topics';
+            const isAnalytics = tab === 'analytics';
+            const isLeads = tab === 'leads';
+            const isBots = tab === 'bots';
 
             const viewClarity = document.getElementById('view-clarity');
             if (viewClarity) viewClarity.style.display = isClarity ? 'block' : 'none';
-            const viewInteractions = document.getElementById('view-interactions');
-            if (viewInteractions) viewInteractions.style.display = isTopics ? 'block' : 'none';
-            const viewAnalytics = document.getElementById('view-analytics');
-            if (viewAnalytics) viewAnalytics.style.display = isTopics ? 'block' : 'none';
+            const viewAcq = document.getElementById('view-acquisition');
+            if (viewAcq) viewAcq.style.display = isClarity ? 'block' : 'none';
+
             const viewSessions = document.getElementById('view-sessions');
             if (viewSessions) viewSessions.style.display = isRecordings ? 'block' : 'none';
 
-            const viewAcq = document.getElementById('view-acquisition');
-            if (viewAcq) viewAcq.style.display = isClarity ? 'block' : 'none';
+            const viewInteractions = document.getElementById('view-interactions');
+            if (viewInteractions) viewInteractions.style.display = isInteractions ? 'block' : 'none';
+
+            const viewAnalytics = document.getElementById('view-analytics');
+            if (viewAnalytics) viewAnalytics.style.display = isAnalytics ? 'block' : 'none';
             const viewIntel = document.getElementById('view-intelligence');
-            if (viewIntel) viewIntel.style.display = isTopics ? 'block' : 'none';
+            if (viewIntel) viewIntel.style.display = isAnalytics ? 'block' : 'none';
+
+            const viewLeads = document.getElementById('view-leads');
+            if (viewLeads) viewLeads.style.display = isLeads ? 'block' : 'none';
+
             const viewBots = document.getElementById('view-bots');
-            if (viewBots) viewBots.style.display = tab === 'bots' ? 'block' : 'none';
+            if (viewBots) viewBots.style.display = isBots ? 'block' : 'none';
 
             if (isClarity) {
                 document.getElementById('pageHeading').textContent = 'Microsoft Clarity Chatbot Telemetry';
                 document.getElementById('pageSubHeading').textContent = 'Friction diagnostics, rage clicks, dead clicks, hesitation, and visitor engagement';
-            } else if (isTopics) {
-                document.getElementById('pageHeading').textContent = 'Conversational Intelligence & Topics';
-                document.getElementById('pageSubHeading').textContent = 'Student inquiry domains, cutoffs, placements, search trends, and knowledge gap resolution';
-                loadInteractionsView();
-                loadKeywordAnalyticsView();
             } else if (isRecordings) {
                 document.getElementById('pageHeading').textContent = 'Session Recordings & Visual Replay';
-                document.getElementById('pageSubHeading').textContent = 'Filter visitor sessions by traffic segment, inspect step-by-step breadcrumbs, and launch video playback';
+                document.getElementById('pageSubHeading').textContent = 'Filter visitor sessions, inspect step-by-step breadcrumbs, and launch video playback';
+            } else if (isInteractions) {
+                document.getElementById('pageHeading').textContent = 'Conversations & Topics Deep Dive';
+                document.getElementById('pageSubHeading').textContent = 'Live topic tags, student questions, click-throughs, dwell times, and raw event log telemetry';
+                loadInteractionsView();
+            } else if (isAnalytics) {
+                document.getElementById('pageHeading').textContent = 'Keyword Analytics & Search Trends';
+                document.getElementById('pageSubHeading').textContent = 'Student inquiry domains, cutoffs, placements, search trends, and knowledge gap resolution';
+                loadKeywordAnalyticsView();
+            } else if (isLeads) {
+                document.getElementById('pageHeading').textContent = 'Lead Generation & Admissions CRM';
+                document.getElementById('pageSubHeading').textContent = 'Prospective candidate submissions, contact details, branch preferences, scores, and CRM pipeline tracking';
+                loadLeads();
+            } else if (isBots) {
+                document.getElementById('pageHeading').textContent = 'Bot & Crawler Security Matrix';
+                document.getElementById('pageSubHeading').textContent = 'Inspect search crawlers, automated scrapers, targeted URLs, and authenticity ratios';
+                loadBotMatrix();
+            }
+        }
+
+        
+        // --- Single Session Download & Daily Bulk Export Suite ---
+        async function downloadSingleSession(sessionId, format = 'json') {
+            if (!sessionId) return;
+            try {
+                showToast(`⏳ Preparing session export (${format.toUpperCase()})...`);
+                const token = localStorage.getItem('token') || localStorage.getItem('rvce_auth_token');
+                const url = apiUrl(`/api/dashboard/sessions/${encodeURIComponent(sessionId)}/export?format=${format}`);
+                const res = await fetch(url, {
+                    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+                });
+                if (!res.ok) throw new Error('Export request failed: ' + res.status);
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `RVCE_Session_${sessionId}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                showToast(`✅ Session ${sessionId.substring(0, 10)}... downloaded!`);
+            } catch(e) {
+                console.error('Session export error:', e);
+                showToast('❌ Export failed: ' + e.message);
+            }
+        }
+
+        function downloadActiveDrawerSession(format = 'json') {
+            const sid = activeJourneySteps[0]?.sessionId || (document.getElementById('drawerSessionId')?.textContent || '').trim();
+            if (sid && sid !== 'Session Playback') {
+                downloadSingleSession(sid, format);
+            } else {
+                showToast('⚠️ No active session loaded in replay drawer');
+            }
+        }
+
+        async function exportDailySessions(format = 'csv') {
+            const dateInput = document.getElementById('dailyExportDatePicker');
+            const selectedDate = dateInput ? dateInput.value : '';
+            try {
+                const label = selectedDate ? `sessions on ${selectedDate}` : 'all daily sessions';
+                showToast(`⏳ Generating bulk export for ${label} (${format.toUpperCase()})...`);
+                const token = localStorage.getItem('token') || localStorage.getItem('rvce_auth_token');
+                let targetUrl = apiUrl(`/api/dashboard/export/csv?type=sessions&format=${format === 'json' ? 'json' : 'csv'}`);
+                if (selectedDate) targetUrl += `&date=${encodeURIComponent(selectedDate)}`;
+                
+                const res = await fetch(targetUrl, {
+                    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+                });
+                if (!res.ok) throw new Error('Bulk export failed: ' + res.status);
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                const ext = format === 'xlsx' ? 'xlsx' : (format === 'json' ? 'json' : 'csv');
+                a.download = `RVCE_Daily_Sessions_${selectedDate || 'All'}.${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                showToast(`✅ Downloaded daily sessions export successfully!`);
+            } catch(e) {
+                console.error('Daily export error:', e);
+                showToast('❌ Bulk export failed: ' + e.message);
+            }
+        }
+
+        // --- Restored Old Dashboard Elements: Leads CRM Pipeline ---
+        async function loadLeads() {
+            const tbody = document.getElementById('leadsTableBody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:30px;">Loading candidate submissions from database...</td></tr>';
+            const data = await fetchWithAuth('/api/dashboard/leads');
+            if (data && Array.isArray(data)) {
+                cachedLeads = data;
+                const badge = document.getElementById('leadsNavBadge');
+                if (badge) badge.textContent = data.length;
+            } else {
+                cachedLeads = [];
+            }
+            renderLeadsTable();
+        }
+
+        function renderLeadsTable() {
+            const tbody = document.getElementById('leadsTableBody');
+            if (!tbody) return;
+
+            let leads = [...cachedLeads];
+            const startDate = document.getElementById('leadStartDate')?.value;
+            const endDate = document.getElementById('leadEndDate')?.value;
+            const statusFilter = document.getElementById('leadStatusFilter')?.value || 'all';
+            const query = (document.getElementById('leadSearchInput')?.value || '').toLowerCase().trim();
+
+            if (startDate) {
+                const s = new Date(startDate);
+                leads = leads.filter(l => new Date(l.createdAt || l.created_at) >= s);
+            }
+            if (endDate) {
+                const e = new Date(endDate);
+                e.setHours(23, 59, 59, 999);
+                leads = leads.filter(l => new Date(l.createdAt || l.created_at) <= e);
+            }
+            if (statusFilter && statusFilter !== 'all') {
+                leads = leads.filter(l => (l.status || 'New').toLowerCase() === statusFilter.toLowerCase());
+            }
+            if (query) {
+                leads = leads.filter(l => {
+                    const name = (l.name || '').toLowerCase();
+                    const phone = (l.phone || '').toLowerCase();
+                    const email = (l.email || '').toLowerCase();
+                    const branch = ((l.leadData && (l.leadData.branch || l.leadData.course)) || l.notes || '').toLowerCase();
+                    return name.includes(query) || phone.includes(query) || email.includes(query) || branch.includes(query);
+                });
+            }
+
+            // Update KPI cards
+            const totalLeads = cachedLeads.length;
+            const verifiedCount = cachedLeads.filter(l => l.phone && l.email).length;
+            const avgScore = cachedLeads.length ? Math.round(cachedLeads.reduce((acc, l) => acc + (parseFloat(l.score) || 82), 0) / cachedLeads.length) : 0;
+            
+            const branchMap = {};
+            cachedLeads.forEach(l => {
+                const b = (l.leadData && (l.leadData.branch || l.leadData.course)) || 'Computer Science';
+                branchMap[b] = (branchMap[b] || 0) + 1;
+            });
+            let topBranch = 'Computer Science';
+            let maxCount = 0;
+            for (const [k, v] of Object.entries(branchMap)) {
+                if (v > maxCount) { maxCount = v; topBranch = k; }
+            }
+
+            if (document.getElementById('leadsKpiTotal')) document.getElementById('leadsKpiTotal').textContent = totalLeads;
+            if (document.getElementById('leadsKpiVerified')) document.getElementById('leadsKpiVerified').textContent = verifiedCount;
+            if (document.getElementById('leadsKpiAvgScore')) document.getElementById('leadsKpiAvgScore').textContent = avgScore > 0 ? `${avgScore}%` : '85%';
+            if (document.getElementById('leadsKpiTopBranch')) document.getElementById('leadsKpiTopBranch').textContent = topBranch;
+
+            if (leads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:30px;">No leads found matching criteria. Adjust filters or run chatbot simulator.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = leads.map(l => {
+                const id = l._id || l.id;
+                const d = l.createdAt || l.created_at;
+                const dateStr = d ? new Date(d).toLocaleString('en-IN', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Recent';
+                const name = l.name || 'Candidate';
+                const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+                const phone = l.phone || '--';
+                const email = l.email || '--';
+                const branch = (l.leadData && (l.leadData.branch || l.leadData.course || l.leadData.city)) || l.notes || 'Engineering Inquirer';
+                const score = l.score ? `${l.score}%` : '85%';
+                const currentStatus = l.status || 'New';
+
+                const statusClass = {
+                    'New': 'lead-status-new',
+                    'Contacted': 'lead-status-contacted',
+                    'Counseling Scheduled': 'lead-status-counseling',
+                    'Admitted': 'lead-status-admitted',
+                    'Archived': 'lead-status-archived'
+                }[currentStatus] || 'lead-status-new';
+
+                return `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05); transition:background 0.2s;">
+                        <td style="font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-dim);">${dateStr}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div class="crm-avatar" style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, #4f46e5, #06b6d4); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#fff;">${initials}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#fff;">${name}</div>
+                                    <div style="font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono', monospace;">${l.sessionId || ''}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            ${phone !== '--' ? `
+                                <a href="tel:${phone}" style="color:#38bdf8; text-decoration:none; font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                                    📞 ${phone}
+                                </a>
+                                <a href="https://wa.me/91${phone.replace(/[^0-9]/g,'')}" target="_blank" title="WhatsApp Chat" style="margin-left:6px; text-decoration:none; font-size:13px;">💬</a>
+                            ` : '<span style="color:var(--text-dim);">--</span>'}
+                        </td>
+                        <td>
+                            ${email !== '--' ? `
+                                <a href="mailto:${email}" style="color:#a5b4fc; text-decoration:none; font-size:12.5px;">
+                                    ✉️ ${email}
+                                </a>
+                            ` : '<span style="color:var(--text-dim);">--</span>'}
+                        </td>
+                        <td>
+                            <span class="tag tag-blue" style="font-size:11px;">${branch}</span>
+                        </td>
+                        <td>
+                            <span class="tag tag-pink" style="font-size:11px; font-family:'JetBrains Mono', monospace;">${score}</span>
+                        </td>
+                        <td>
+                            <select onchange="updateLeadStatus('${id}', this.value)" style="padding:4px 10px; border-radius:14px; font-size:11px; font-weight:700; background:rgba(15,23,42,0.9); border:1px solid var(--border); color:#fff; cursor:pointer;" class="${statusClass}">
+                                <option value="New" ${currentStatus==='New'?'selected':''}>🔵 New</option>
+                                <option value="Contacted" ${currentStatus==='Contacted'?'selected':''}>🟡 Contacted</option>
+                                <option value="Counseling Scheduled" ${currentStatus==='Counseling Scheduled'?'selected':''}>🟣 Counseling</option>
+                                <option value="Admitted" ${currentStatus==='Admitted'?'selected':''}>🟢 Admitted</option>
+                                <option value="Archived" ${currentStatus==='Archived'?'selected':''}>⚪ Archived</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-indigo" style="padding:4px 8px; font-size:11px;" onclick="showToast('Candidate ${name}')">View</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function updateLeadStatus(id, newStatus) {
+            try {
+                const match = cachedLeads.find(l => (l._id || l.id) === id);
+                if (match) match.status = newStatus;
+                renderLeadsTable();
+
+                const res = await fetchWithAuth(`/api/dashboard/leads/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (res && res.ok) {
+                    showToast(`✅ Status updated to ${newStatus}`);
+                }
+            } catch(e) {
+                console.error('Error updating status:', e);
+            }
+        }
+
+        function exportLeads(format) {
+            if (!cachedLeads.length) {
+                showToast('⚠️ No leads available to export');
+                return;
+            }
+            if (format === 'csv') {
+                const headers = ['ID', 'Date', 'Name', 'Phone', 'Email', 'Status', 'Score', 'Branch/Notes'];
+                const rows = cachedLeads.map(l => [
+                    l._id || l.id || '',
+                    l.createdAt || l.created_at || '',
+                    `"${(l.name || '').replace(/"/g, '""')}"`,
+                    l.phone || '',
+                    l.email || '',
+                    l.status || 'New',
+                    l.score || '',
+                    `"${((l.leadData && (l.leadData.branch || l.leadData.course)) || l.notes || '').replace(/"/g, '""')}"`
+                ]);
+                const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', `rvce_leads_${new Date().toISOString().slice(0,10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('✅ Leads CSV exported successfully!');
+            } else if (format === 'xlsx') {
+                window.location.href = apiUrl('/api/dashboard/export/csv?type=leads');
             }
         }
 
@@ -3155,6 +3596,9 @@
             }
 
             // Unanswered Queries
+            loadLeads(); // Auto-load leads for CRM badge
+            const dp = document.getElementById('dailyExportDatePicker');
+            if (dp && !dp.value) dp.value = new Date().toISOString().split('T')[0];
             const unanswered = await fetchWithAuth('/api/dashboard/unanswered');
             if (unanswered) {
                 renderUnansweredList(unanswered);
@@ -3615,9 +4059,14 @@
 
                         <!-- 6. Visual Replay -->
                         <td>
-                            <button class="btn btn-indigo" style="padding:6px 14px; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:6px;" onclick="openReplayDrawer('${s.sessionId}')">
-                                ▶ Watch Replay
-                            </button>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <button class="btn btn-indigo" style="padding:6px 12px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" onclick="openReplayDrawer('${s.sessionId}')" title="Watch visual replay">
+                                    ▶ Replay
+                                </button>
+                                <button class="btn" style="padding:6px 10px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px; background:rgba(30,41,59,0.7); border:1px solid var(--border); color:#38bdf8;" onclick="downloadSingleSession('${s.sessionId}')" title="Download this session JSON/CSV">
+                                    📥 Save
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;

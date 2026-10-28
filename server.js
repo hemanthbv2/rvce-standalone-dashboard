@@ -1942,16 +1942,21 @@ app.post('/api/chat/reply', async (req, res) => {
 });
 
 // ==========================================
-// 8. DIRECT CSV EXPORT FOR SESSIONS & LEADS
+// 8. DIRECT CSV & JSON EXPORT FOR SESSIONS & LEADS (SINGLE & PER-DAY)
 // ==========================================
 app.get('/api/dashboard/export/csv', authenticateToken, async (req, res) => {
     try {
         const type = req.query.type || 'sessions';
+        const dateFilter = req.query.date || '';
 
         if (type === 'leads') {
             let leads = [];
             if (isMongoConnected) leads = await Lead.find({}).sort({ createdAt: -1 }).lean();
             if (leads.length === 0) leads = Array.from(memStore.leads.values());
+
+            if (dateFilter) {
+                leads = leads.filter(l => (l.createdAt || '').toString().startsWith(dateFilter));
+            }
 
             let csv = 'Candidate_Name,Phone,Email,Status,Score,Notes,City,Country,Referrer,Entry_Page,Created_At\n';
             leads.forEach(l => {
@@ -1960,24 +1965,158 @@ app.get('/api/dashboard/export/csv', authenticateToken, async (req, res) => {
             });
 
             res.setHeader('Content-Type', 'text/csv');
-            res.setHeader('Content-Disposition', `attachment; filename=RVCE_Leads_${new Date().toISOString().split('T')[0]}.csv`);
+            res.setHeader('Content-Disposition', `attachment; filename=RVCE_Leads_${dateFilter || new Date().toISOString().split('T')[0]}.csv`);
             return res.send(csv);
         }
 
-        // Export Sessions
+        // Export Sessions (Supports ?date=YYYY-MM-DD for Per-Day Total Sessions)
         let sessions = [];
-        if (isMongoConnected) sessions = await Session.find({}).sort({ createdAt: -1 }).limit(1000).lean();
+        if (isMongoConnected) sessions = await Session.find({}).sort({ createdAt: -1 }).limit(2000).lean();
         if (sessions.length === 0) sessions = Array.from(memStore.sessions.values());
 
-        let csv = 'Session_ID,City,Country,Device_Type,OS,Browser,Entry_Page,Exit_Page,Referrer,Rage_Clicks,Dead_Clicks,Frustration_Score,Is_Lead,Start_Time\n';
+        if (dateFilter) {
+            sessions = sessions.filter(s => {
+                const d = (s.startTime || s.createdAt || '').toString();
+                return d.startsWith(dateFilter);
+            });
+        }
+
+        const format = req.query.format || 'csv';
+        if (format === 'json') {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Disposition', `attachment; filename=RVCE_Sessions_${dateFilter || 'All'}_${new Date().toISOString().split('T')[0]}.json`);
+            return res.json({ date: dateFilter || 'All', totalCount: sessions.length, sessions });
+        }
+
+        let csv = 'Session_ID,Date,Start_Time,End_Time,Duration_Sec,City,Country,Device_Type,OS,Browser,Chat_Status,Turns_Count,Last_Query,Dialogue_Summary,Rage_Clicks,Dead_Clicks,Frustration_Score,Entry_Page,Exit_Page,Referrer\n';
         sessions.forEach(s => {
             const clean = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
-            csv += `${clean(s.sessionId)},${clean(s.geo?.city)},${clean(s.geo?.country)},${clean(s.device?.type)},${clean(s.device?.os)},${clean(s.device?.browser)},${clean(s.entryPage)},${clean(s.exitPage)},${clean(s.referrer)},${s.metrics?.rageClicks || 0},${s.metrics?.deadClicks || 0},${s.metrics?.frustrationScore || 0},${s.isConvertedLead ? 'Yes' : 'No'},${clean(s.startTime)}\n`;
+            const startDate = new Date(s.startTime || s.createdAt || Date.now());
+            const endDate = new Date(s.lastActive || s.updatedAt || s.startTime || Date.now());
+            const durSec = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / 1000));
+            const dateStr = startDate.toISOString().split('T')[0];
+            const startTimeStr = startDate.toISOString().split('T')[1].split('.')[0];
+            const endTimeStr = endDate.toISOString().split('T')[1].split('.')[0];
+            
+            // Format dialogue summary
+            let dlgSummary = '';
+            if (s.dialogue && Array.isArray(s.dialogue) && s.dialogue.length > 0) {
+                dlgSummary = s.dialogue.map(d => `[${d.role || 'user'}]: ${d.text || d.queryText || ''}`).join(' | ');
+            } else if (s.lastQuery) {
+                dlgSummary = `User asked: ${s.lastQuery}`;
+            }
+
+            const chatStatus = (s.chatEngagement === 'conversed' || (s.dialogue && s.dialogue.length > 0)) ? 'Conversed' : (s.chatEngagement === 'opened_only' ? 'Opened Only' : 'Web Visit');
+            const turnCount = s.dialogue?.length || s.metrics?.messageCount || 0;
+
+            csv += `${clean(s.sessionId)},${clean(dateStr)},${clean(startTimeStr)},${clean(endTimeStr)},${durSec},${clean(s.geo?.city)},${clean(s.geo?.country)},${clean(s.device?.type)},${clean(s.device?.os)},${clean(s.device?.browser)},${clean(chatStatus)},${turnCount},${clean(s.lastQuery)},${clean(dlgSummary)},${s.metrics?.rageClicks || 0},${s.metrics?.deadClicks || 0},${s.metrics?.frustrationScore || 0},${clean(s.entryPage)},${clean(s.exitPage)},${clean(s.referrer)}\n`;
         });
 
         res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename=RVCE_Sessions_${new Date().toISOString().split('T')[0]}.csv`);
+        res.setHeader('Content-Disposition', `attachment; filename=RVCE_Sessions_${dateFilter || 'All'}_${new Date().toISOString().split('T')[0]}.csv`);
         res.send(csv);
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Single Session Download Dossier (JSON or CSV)
+app.get(['/api/dashboard/sessions/:id/export', '/api/dashboard/session/:id/export'], authenticateToken, async (req, res) => {
+    try {
+        const sid = req.params.id;
+        const format = (req.query.format || 'json').toLowerCase();
+
+        let s = null;
+        if (isMongoConnected) {
+            try {
+                const query = (mongoose.Types.ObjectId.isValid(sid) && sid.length === 24)
+                    ? { $or: [{ sessionId: sid }, { _id: sid }] }
+                    : { sessionId: sid };
+                s = await Session.findOne(query).lean();
+            } catch(e) {}
+        }
+
+        if (!s && supabase) {
+            try {
+                const { data } = await supabase.from('sessions').select('*').eq('session_id', sid).maybeSingle();
+                if (data) {
+                    s = {
+                        sessionId: data.session_id,
+                        instituteId: data.institute_id || 'rvce',
+                        landingPage: data.landing_page,
+                        entryPage: data.entry_page,
+                        exitPage: data.exit_page,
+                        referrer: data.referrer || 'Direct',
+                        startTime: data.start_time,
+                        lastActive: data.last_active,
+                        metrics: data.metrics || {},
+                        device: data.device || {},
+                        geo: data.geo || {},
+                        dialogue: data.dialogue || [],
+                        journeySteps: []
+                    };
+                    const { data: supaInts } = await supabase.from('interactions').select('*').eq('session_id', sid).order('created_at', { ascending: true });
+                    if (supaInts && supaInts.length > 0) {
+                        s.journeySteps = supaInts.map(i => ({
+                            type: i.event_type || 'interaction',
+                            title: i.query_text || i.interaction_id || 'Action',
+                            action: i.interaction_id || i.query_text,
+                            query: i.query_text,
+                            botReply: i.bot_reply,
+                            timestamp: i.created_at,
+                            location: i.location || 'Chatbot'
+                        }));
+                    }
+                }
+            } catch(e) {}
+        }
+
+        if (!s) {
+            s = memStore.sessions.get(sid);
+            if (!s) {
+                for (let session of memStore.sessions.values()) {
+                    if (session.sessionId === sid || session._id === sid) {
+                        s = session;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!s) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        if (format === 'csv') {
+            let csv = 'Step,Timestamp,Type,Event_Detail,User_Query,Bot_Response,Location,Page_URL\n';
+            const clean = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+
+            // Steps
+            if (s.journeySteps && Array.isArray(s.journeySteps)) {
+                s.journeySteps.forEach((st, idx) => {
+                    csv += `${idx + 1},${clean(st.timestamp || '')},${clean(st.type || '')},${clean(st.title || st.action || '')},${clean(st.query || '')},${clean(st.botReply || '')},${clean(st.location || '')},${clean(st.page || s.entryPage || '')}\n`;
+                });
+            } else if (s.dialogue && Array.isArray(s.dialogue)) {
+                s.dialogue.forEach((d, idx) => {
+                    csv += `${idx + 1},${clean(d.timestamp || '')},dialogue,${clean(d.role || '')},${clean(d.role === 'user' ? d.text : '')},${clean(d.role === 'bot' ? d.text : '')},Chatbot,${clean(s.entryPage || '')}\n`;
+                });
+            }
+
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', `attachment; filename=RVCE_Session_${s.sessionId}.csv`);
+            return res.send(csv);
+        }
+
+        // Default JSON dossier
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename=RVCE_Session_${s.sessionId}.json`);
+        res.json({
+            ok: true,
+            sessionId: s.sessionId,
+            exportedAt: new Date().toISOString(),
+            institution: 'RV College of Engineering',
+            session: s
+        });
     } catch(err) {
         res.status(500).json({ error: err.message });
     }
